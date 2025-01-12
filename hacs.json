@@ -1,7 +1,7 @@
 {
-    "name": "lovelace-voice-recorder-card",
+    "name": "HA-Voice-Recorder-Card",
     "render_readme": true,
-    "documentation": "https://github.com/kukuxx/lovelace-voice-recorder-card",
-    "issue_tracker": "https://github.com/kukuxx/lovelace-voice-recorder-card/issues",
+    "documentation": "https://github.com/kukuxx/HA-Voice-Recorder-Card",
+    "issue_tracker": "https://github.com/kukuxx/HA-Voice-Recorder-Card/issues",
     "homeassistant": "2024.12.5"
 }

@@ -1,10 +1,3 @@
-window.customCards = window.customCards || [];
-window.customCards.push({
-    type: "voice-recorder-card",
-    name: "Voice Recorder Card",
-    description: "A card to record and upload audio files.",
-});
-
 class VoiceRecorderCard extends HTMLElement {
     constructor() {
         super();
@@ -310,4 +303,15 @@ class VoiceRecorderCard extends HTMLElement {
     }
 }
 
-customElements.define('voice-recorder-card', VoiceRecorderCard);
+window.customCards = window.customCards || [];
+if (!window.customCards.some(card => card.type === "voice-recorder-card")) {
+    window.customCards.push({
+        type: "voice-recorder-card",
+        name: "Voice Recorder Card",
+        description: "A card to record and upload audio files.",
+    });
+}
+
+if (!window.customElements.get('voice-recorder-card')) {
+    window.customElements.define('voice-recorder-card', VoiceRecorderCard);
+}

@@ -1,0 +1,42 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Configure Voice Recorder",
+                "data": {
+                    "entry_name": "Enter entry name:",
+                    "save_path": "File path to save:",
+                    "remove": "Automatically delete files from the previous day"
+                }
+            }
+        },
+        "abort": {
+            "single_instance_allowed": "Only a single configuration of Voice Recorder is allowed."
+        },
+        "error": {
+            "empty": "Cannot be empty.",
+            "not_allowed": "Please confirm whether the 'allowlist_external_dirs' in 'configuration.yaml' is correct.",
+            "not_dir": "The path is not a dir."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Configure Voice Recorder",
+                "data": {
+                    "entry_name": "Enter entry name:",
+                    "save_path": "File path to save:",
+                    "remove": "Automatically delete files from the previous day"
+                }
+            }
+        },
+        "abort": {
+            "single_instance_allowed": "Only a single configuration of Voice Recorder is allowed."
+        },
+        "error": {
+            "empty": "Cannot be empty.",
+            "not_allowed": "Please confirm whether the 'allowlist_external_dirs' in 'configuration.yaml' is correct.",
+            "not_dir": "The path is not a dir."
+        }
+    }
+}
