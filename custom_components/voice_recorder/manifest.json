@@ -9,6 +9,10 @@
     "issue_tracker": "https://github.com/kukuxx/HA-Voice-Recorder-Card/issues",
     "requirements": [],
     "dependencies": [],
+    "integration_type": "service",
+    "loggers": [
+        "voice_recorder"
+    ],
     "config_flow": true,
     "iot_class": "local_polling"
 }
