@@ -88,8 +88,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             task()
         hass.data[DOMAIN].pop(entry.entry_id, None)
 
-        if not hass.data[DOMAIN]:
+        if DOMAIN in hass.data and not hass.data[DOMAIN]:
+            async_del_view(hass)
             hass.data.pop(DOMAIN, None)
+
         return True
     except Exception as e:
         _LOGGER.error(f"async_unload_entry error {e}")
@@ -99,23 +101,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload the config entry."""
     await hass.config_entries.async_reload(entry.entry_id)
-
-
-async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle removal of an entry."""
-    try:
-        if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
-            task = hass.data[DOMAIN][entry.entry_id].get("remove_task", None)
-            if task:
-                task()
-
-            hass.data[DOMAIN].pop(entry.entry_id, None)
-
-        if DOMAIN in hass.data and not hass.data[DOMAIN]:
-            async_del_view(hass)
-            hass.data.pop(DOMAIN, None)
-    except Exception as e:
-        _LOGGER.error(f"Error removing entry {entry.entry_id}: {e}")
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -190,7 +175,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
 
                 if field.name == "file":
                     # 處理文件
-                    time = now().strftime("%Y-%m-%d %H:%M:%S")
+                    time = now().strftime("%Y-%m-%d_%H:%M:%S")
                     filename = f"recording_{time}.mp3"
                     filepath = os.path.join(self.save_path, filename)
 
