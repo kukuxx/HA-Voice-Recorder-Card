@@ -11,7 +11,7 @@ from aiohttp import web
 
 from homeassistant.components.http import KEY_HASS, HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers import config_validation as cv
@@ -153,13 +153,27 @@ class VoiceRecorderUploadView(HomeAssistantView):
     url = "/api/voice_recorder/upload"
     name = "api:voice_recorder"
     requires_auth = True
+    _upload_lock: asyncio.Lock | None = None
 
     def __init__(self, save_path):
         """Initialize the upload view."""
         self.save_path = save_path
 
+    @callback
+    def _get_upload_lock(self) -> asyncio.Lock:
+        """Get upload lock."""
+        if self._upload_lock is None:
+            self._upload_lock = asyncio.Lock()
+
+        return self._upload_lock
+
     async def post(self, request):
         """Handle POST requests for file uploads."""
+        async with self._get_upload_lock():
+            return await self._upload_file(request)
+
+    async def _upload_file(self, request):
+        """Handle uploaded file."""
         try:
             hass = request.app[KEY_HASS]
             reader = await request.multipart()
