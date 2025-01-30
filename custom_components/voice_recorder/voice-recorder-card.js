@@ -27,71 +27,110 @@ class VoiceRecorderCard extends HTMLElement {
 
         const style = document.createElement('style');
         style.textContent = `
+            ha-card {
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
             .card-content {
-                padding: 16px;
+                padding: 20px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 16px;
+                gap: 20px;
+                box-sizing: border-box;
+                background: var(--card-background-color);
             }
             
+            .input-container {
+                position: relative;
+                width: 100%;
+                display: flex;
+                align-items: center;
+            }
+
             .eventname-input {
                 width: 100%;
-                padding: 8px;
-                border: 1px solid var(--primary-color);
-                border-radius: 4px;
+                box-sizing: border-box;
+                padding: 12px 44px 12px 16px;
+                border: 2px solid var(--primary-color);
+                border-radius: 12px;
                 background: var(--card-background-color);
                 color: var(--primary-text-color);
+                font-size: 16px;
+                transition: all 0.3s ease;
             }
 
             .eventname-input:focus {
                 outline: none;
                 border-color: var(--accent-color);
+                box-shadow: 0 0 0 3px rgba(var(--rgb-accent-color), 0.1);
             }
 
             .eventname-input::placeholder {
                 color: var(--secondary-text-color);
             }
+
+            .clear-button {
+                position: absolute;
+                right: 10px;
+                min-width: 28px;
+                min-height: 28px;
+                width: 28px;
+                height: 28px;
+                background: var(--secondary-background-color);
+                border: none;
+                border-radius: 50%;
+                color: var(--primary-text-color);
+                cursor: pointer;
+                padding: 0;
+                display: none;
+                font-size: 22px;
+                line-height: 1;
+                z-index: 1;
+                transition: all 0.2s ease;
+            }
+
+            .clear-button:hover {
+                background: var(--primary-color);
+                color: var(--primary-text-color);
+            }
+
+            .clear-button.visible {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
             
             .controls-container {
                 display: flex;
-                align-items: center;
-                gap: 8px;
                 width: 100%;
             }
             
             mwc-button {
                 margin: 8px 0;
                 --mdc-theme-primary: var(--primary-color);
+                width: 100%;
+                --mdc-shape-small: 12px;
+                transition: all 0.3s ease;
             }
             
             .recording {
-                background-color: var(--error-color) !important;
+                --mdc-theme-primary: var(--error-color) !important;
             }
 
-            .status-indicator {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background-color: #ccc;
-                display: inline-block;
-                vertical-align: middle;
-            }
-
-            .status-indicator.recording {
-                background-color: #ff0000;
-                animation: pulse 1s infinite;
-            }
-
-            @keyframes pulse {
-                0% { opacity: 1; }
-                50% { opacity: 0.5; }
-                100% { opacity: 1; }
+            /* 按鈕懸停效果 */
+            mwc-button:hover {
+                opacity: 0.9;
             }
         `;
 
         const content = document.createElement('div');
         content.className = 'card-content';
+
+        const inputContainer = document.createElement('div');
+        inputContainer.className = 'input-container';
 
         // 添加事件名輸入框
         const eventnameInput = document.createElement('input');
@@ -100,40 +139,43 @@ class VoiceRecorderCard extends HTMLElement {
         eventnameInput.id = 'eventnameInput';
         eventnameInput.placeholder = 'Enter your custom event name (optional)';
 
+        const clearButton = document.createElement('button');
+        clearButton.className = 'clear-button';
+        clearButton.innerHTML = '×';
+        clearButton.addEventListener('click', () => {
+            eventnameInput.value = '';
+            clearButton.classList.remove('visible');
+        });
+
+        eventnameInput.addEventListener('input', () => {
+            clearButton.classList.toggle('visible', eventnameInput.value.length > 0);
+        });
+
+        inputContainer.appendChild(eventnameInput);
+        inputContainer.appendChild(clearButton);
+
         const controlsContainer = document.createElement('div');
         controlsContainer.className = 'controls-container';
 
-        const startButton = document.createElement('mwc-button');
-        startButton.raised = true;
-        startButton.id = 'recordButton';
-        startButton.textContent = 'Press and hold to start';
-        startButton.style.flex = '1';
+        const recordButton = document.createElement('mwc-button');
+        recordButton.raised = true;
+        recordButton.id = 'recordButton';
+        recordButton.textContent = 'Start Recording';
 
-        const statusIndicator = document.createElement('div');
-        statusIndicator.className = 'status-indicator';
-        statusIndicator.id = 'statusIndicator';
-
-        startButton.addEventListener('mousedown', () => this.startRecording());
-        startButton.addEventListener('mouseup', () => this.stopRecording());
-        startButton.addEventListener('mouseleave', () => this.stopRecording());
-
-        startButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.startRecording();
-        });
-        startButton.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.stopRecording();
+        recordButton.addEventListener('click', () => {
+            if (this.isRecording) {
+                this.stopRecording();
+            } else {
+                this.startRecording();
+            }
         });
 
-        controlsContainer.appendChild(startButton);
-        controlsContainer.appendChild(statusIndicator);
+        controlsContainer.appendChild(recordButton);
 
-        content.appendChild(eventnameInput);
+        content.appendChild(inputContainer);
         content.appendChild(controlsContainer);
         card.appendChild(style);
         card.appendChild(content);
-
 
         while (this.shadowRoot.firstChild) {
             this.shadowRoot.removeChild(this.shadowRoot.firstChild);
@@ -173,8 +215,6 @@ class VoiceRecorderCard extends HTMLElement {
     async startRecording() {
         if (this.isRecording) return;
 
-        const eventnameInput = this.shadowRoot.querySelector('#eventnameInput');
-
         try {
             if (!this.recorder) {
                 await this.initRecorder();
@@ -184,10 +224,8 @@ class VoiceRecorderCard extends HTMLElement {
             this.isRecording = true;
 
             const button = this.shadowRoot.querySelector('#recordButton');
-            const statusIndicator = this.shadowRoot.querySelector('#statusIndicator');
-            button.textContent = 'Recording...';
+            button.textContent = 'Stop Recording';
             button.classList.add('recording');
-            statusIndicator.classList.add('recording');
 
             // 設置最大錄音時長
             this.recordingTimeout = setTimeout(() => {
@@ -214,10 +252,8 @@ class VoiceRecorderCard extends HTMLElement {
         try {
             this.isRecording = false;
             const button = this.shadowRoot.querySelector('#recordButton');
-            const statusIndicator = this.shadowRoot.querySelector('#statusIndicator');
-            button.textContent = 'Press and hold to start';
+            button.textContent = 'Start Recording';
             button.classList.remove('recording');
-            statusIndicator.classList.remove('recording');
 
             this.recorder.stop(async (blob, duration) => {
                 try {
