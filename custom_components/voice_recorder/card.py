@@ -29,10 +29,11 @@ async def async_setup_view(hass):
         add_extra_js_url(hass, FRONTEND_SCRIPT_URL)
         _LOGGER.info("Added %s as an extra JS URL", FRONTEND_SCRIPT_URL)
 
-        resources = hass.data.get("lovelace", {}).get("resources")
-        if not resources:
-            _LOGGER.warning("Lovelace resources not available.")
+        if (lovelace_data := hass.data.get("lovelace")) is None:
+            _LOGGER.warning("Can not access the lovelace data")
             return
+
+        resources = lovelace_data.resources
 
         if not resources.loaded:
             await resources.async_load()
@@ -66,10 +67,11 @@ async def async_setup_view(hass):
 async def async_del_view(hass):
     """Delete the custom Lovelace card resources."""
     try:
-        resources = hass.data.get("lovelace", {}).get("resources")
-        if not resources:
-            _LOGGER.warning("Lovelace resources not available.")
+        if (lovelace_data := hass.data.get("lovelace")) is None:
+            _LOGGER.warning("Can not access the lovelace data")
             return
+
+        resources = lovelace_data.resources
 
         if not resources.loaded:
             await resources.async_load()
