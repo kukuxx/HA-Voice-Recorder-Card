@@ -53,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await auto_remove(hass, save_path)
 
     if remove:
-        task = async_track_time_change(hass, clear_task, hour=1, minute=0)
+        task = async_track_time_change(hass, clear_task, hour=1, minute=0, second=0)
     else:
         task = None
 

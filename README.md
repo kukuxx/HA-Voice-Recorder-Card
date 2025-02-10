@@ -44,6 +44,7 @@
 ```
 type: custom:voice-recorder-card
 token: your token
+event_name: static event name(optional)
 ```
 > [!Tip]
 > 1.Please generate a permanent token in HA.<br>

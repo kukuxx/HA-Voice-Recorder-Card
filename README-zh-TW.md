@@ -41,6 +41,7 @@
 ```
 type: custom:voice-recorder-card
 token: your token
+event_name: static event name(optional)
 ```
 > [!Tip]
 > 1.記得到HA生成永久token。<br>

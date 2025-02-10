@@ -4,7 +4,7 @@ class VoiceRecorderCard extends HTMLElement {
         this.recorder = null;
         this.isRecording = false;
         this._hass = null;
-        this.MAX_DURATION = 300000; // 最大錄音時長（毫秒）
+        this.MAX_DURATION = 300000; // Maximum record time (milliseconds)
         this.recordingTimeout = null;
     }
 
@@ -15,7 +15,7 @@ class VoiceRecorderCard extends HTMLElement {
 
         this.config = config;
         this.token = config.token;
-        this.eventName = config.event_name;    // Static event name
+        this.eventname = config.event_name;    // Static event name
         this.attachShadow({ mode: 'open' });
         this._buildCard();
     }
@@ -39,16 +39,19 @@ class VoiceRecorderCard extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 20px;
+                gap: 10px;
                 box-sizing: border-box;
                 background: var(--card-background-color);
             }
             
             .input-container {
+                display: none;
                 position: relative;
                 width: 100%;
+            }
+
+            .input-container.visible {
                 display: flex;
-                align-items: center;
             }
 
             .eventname-input {
@@ -75,11 +78,13 @@ class VoiceRecorderCard extends HTMLElement {
 
             .clear-button {
                 position: absolute;
-                right: 10px;
-                min-width: 28px;
-                min-height: 28px;
-                width: 28px;
-                height: 28px;
+                top: 50%;
+                right: 8px;
+                transform: translateY(-50%);
+                width: 2em;
+                height: 2em;
+                min-width: unset;
+                min-height: unset;
                 background: var(--secondary-background-color);
                 border: none;
                 border-radius: 50%;
@@ -87,7 +92,7 @@ class VoiceRecorderCard extends HTMLElement {
                 cursor: pointer;
                 padding: 0;
                 display: none;
-                font-size: 22px;
+                font-size: 1.2em;
                 line-height: 1;
                 z-index: 1;
                 transition: all 0.2s ease;
@@ -107,12 +112,33 @@ class VoiceRecorderCard extends HTMLElement {
             .controls-container {
                 display: flex;
                 width: 100%;
+                gap: 8px;
+                align-items: stretch;
             }
-            
+
+            .toggle-button {
+                flex: 1; 
+                margin: 8px 0;
+                border: none;
+                border-radius: 12px;
+                background: var(--primary-color);
+                color: var(--primary-text-color);
+                cursor: pointer;
+                font-size: 1.5em;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+
+            .toggle-button:hover {
+                opacity: 0.9;
+            }
+
             mwc-button {
+                flex: 20;
                 margin: 8px 0;
                 --mdc-theme-primary: var(--primary-color);
-                width: 100%;
                 --mdc-shape-small: 12px;
                 transition: all 0.3s ease;
             }
@@ -121,7 +147,7 @@ class VoiceRecorderCard extends HTMLElement {
                 --mdc-theme-primary: var(--error-color) !important;
             }
 
-            /* 按鈕懸停效果 */
+            /* Button hover effect */
             mwc-button:hover {
                 opacity: 0.9;
             }
@@ -130,43 +156,39 @@ class VoiceRecorderCard extends HTMLElement {
         const content = document.createElement('div');
         content.className = 'card-content';
 
+        // eventname textbox
         const inputContainer = document.createElement('div');
         inputContainer.className = 'input-container';
 
-        // If an event name is not provided in the configuration, show the eventname textbox
-        if (!this.eventName)
-        {        
-            // 添加事件名輸入框
-            const eventnameInput = document.createElement('input');
-            eventnameInput.type = 'text';
-            eventnameInput.className = 'eventname-input';
-            eventnameInput.id = 'eventnameInput';
-            eventnameInput.placeholder = 'Enter your custom event name (optional)';
+        const eventnameInput = document.createElement('input');
+        eventnameInput.type = 'text';
+        eventnameInput.className = 'eventname-input';
+        eventnameInput.id = 'eventnameInput';
+        eventnameInput.placeholder = 'Enter your custom event name (optional)';
 
-            const clearButton = document.createElement('button');
-            clearButton.className = 'clear-button';
-            clearButton.innerHTML = '×';
-            clearButton.addEventListener('click', () => {
-                eventnameInput.value = '';
-                clearButton.classList.remove('visible');
-            });
+        const clearButton = document.createElement('button');
+        clearButton.className = 'clear-button';
+        clearButton.innerHTML = '×';
+        clearButton.addEventListener('click', () => {
+            eventnameInput.value = '';
+            clearButton.classList.remove('visible');
+        });
 
-            eventnameInput.addEventListener('input', () => {
-                clearButton.classList.toggle('visible', eventnameInput.value.length > 0);
-            });
+        eventnameInput.addEventListener('input', () => {
+            clearButton.classList.toggle('visible', eventnameInput.value.length > 0);
+        });
 
-            inputContainer.appendChild(eventnameInput);
-            inputContainer.appendChild(clearButton);
-        }
+        inputContainer.appendChild(eventnameInput);
+        inputContainer.appendChild(clearButton);
 
         const controlsContainer = document.createElement('div');
         controlsContainer.className = 'controls-container';
 
+        // record button
         const recordButton = document.createElement('mwc-button');
         recordButton.raised = true;
         recordButton.id = 'recordButton';
         recordButton.textContent = 'Start Recording';
-
         recordButton.addEventListener('click', () => {
             if (this.isRecording) {
                 this.stopRecording();
@@ -175,7 +197,18 @@ class VoiceRecorderCard extends HTMLElement {
             }
         });
 
+        // toggle button
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'toggle-button';
+        toggleButton.innerHTML = '+';
+        toggleButton.addEventListener('click', () => {
+            this.isInputVisible = !this.isInputVisible;
+            inputContainer.classList.toggle('visible', this.isInputVisible);
+            toggleButton.innerHTML = this.isInputVisible ? '-' : '+';
+        });
+
         controlsContainer.appendChild(recordButton);
+        controlsContainer.appendChild(toggleButton);
 
         content.appendChild(inputContainer);
         content.appendChild(controlsContainer);
@@ -232,7 +265,7 @@ class VoiceRecorderCard extends HTMLElement {
             button.textContent = 'Stop Recording';
             button.classList.add('recording');
 
-            // 設置最大錄音時長
+            // Set the maximum record time
             this.recordingTimeout = setTimeout(() => {
                 if (this.isRecording) {
                     this.stopRecording();
@@ -268,7 +301,7 @@ class VoiceRecorderCard extends HTMLElement {
                     }
 
                     const formData = new FormData();
-                    const eventName = this.eventName ?? this.shadowRoot.querySelector('#eventnameInput').value.trim();    // the event name is either provided in the configuration or read from the textbox element
+                    const eventName = this.eventname ?? this.shadowRoot.querySelector('#eventnameInput').value.trim();    // the event name is either provided in the configuration or read from the textbox element
                     formData.append('file', blob, 'recording.mp3');
                     formData.append('eventname', eventName);
 
