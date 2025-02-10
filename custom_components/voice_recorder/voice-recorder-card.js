@@ -15,6 +15,7 @@ class VoiceRecorderCard extends HTMLElement {
 
         this.config = config;
         this.token = config.token;
+        this.eventName = config.event_name;    // Static event name
         this.attachShadow({ mode: 'open' });
         this._buildCard();
     }
@@ -132,27 +133,31 @@ class VoiceRecorderCard extends HTMLElement {
         const inputContainer = document.createElement('div');
         inputContainer.className = 'input-container';
 
-        // 添加事件名輸入框
-        const eventnameInput = document.createElement('input');
-        eventnameInput.type = 'text';
-        eventnameInput.className = 'eventname-input';
-        eventnameInput.id = 'eventnameInput';
-        eventnameInput.placeholder = 'Enter your custom event name (optional)';
+        // If an event name is not provided in the configuration, show the eventname textbox
+        if (!this.eventName)
+        {        
+            // 添加事件名輸入框
+            const eventnameInput = document.createElement('input');
+            eventnameInput.type = 'text';
+            eventnameInput.className = 'eventname-input';
+            eventnameInput.id = 'eventnameInput';
+            eventnameInput.placeholder = 'Enter your custom event name (optional)';
 
-        const clearButton = document.createElement('button');
-        clearButton.className = 'clear-button';
-        clearButton.innerHTML = '×';
-        clearButton.addEventListener('click', () => {
-            eventnameInput.value = '';
-            clearButton.classList.remove('visible');
-        });
+            const clearButton = document.createElement('button');
+            clearButton.className = 'clear-button';
+            clearButton.innerHTML = '×';
+            clearButton.addEventListener('click', () => {
+                eventnameInput.value = '';
+                clearButton.classList.remove('visible');
+            });
 
-        eventnameInput.addEventListener('input', () => {
-            clearButton.classList.toggle('visible', eventnameInput.value.length > 0);
-        });
+            eventnameInput.addEventListener('input', () => {
+                clearButton.classList.toggle('visible', eventnameInput.value.length > 0);
+            });
 
-        inputContainer.appendChild(eventnameInput);
-        inputContainer.appendChild(clearButton);
+            inputContainer.appendChild(eventnameInput);
+            inputContainer.appendChild(clearButton);
+        }
 
         const controlsContainer = document.createElement('div');
         controlsContainer.className = 'controls-container';
@@ -263,7 +268,7 @@ class VoiceRecorderCard extends HTMLElement {
                     }
 
                     const formData = new FormData();
-                    const eventName = this.shadowRoot.querySelector('#eventnameInput').value.trim();
+                    const eventName = this.eventName ?? this.shadowRoot.querySelector('#eventnameInput').value.trim();    // the event name is either provided in the configuration or read from the textbox element
                     formData.append('file', blob, 'recording.mp3');
                     formData.append('eventname', eventName);
 
