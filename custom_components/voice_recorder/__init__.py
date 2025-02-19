@@ -50,10 +50,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     os.makedirs(save_path, exist_ok=True)
 
     async def clear_task(*args):
-        await auto_remove(hass, save_path)
+        await hass.async_add_executor_job(auto_remove, save_path)
 
     if remove:
-        task = async_track_time_change(hass, clear_task, hour=1, minute=0, second=0)
+        task = async_track_time_change(
+            hass, clear_task, hour=1, minute=0, second=0
+        )
     else:
         task = None
 
@@ -117,31 +119,32 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def auto_remove(hass, save_path) -> None:
+def auto_remove(save_path) -> None:
     """Automatically delete recording files older than today"""
     try:
-        job = hass.async_add_executor_job
         record_path = Path(save_path)
         today = as_timestamp(start_of_local_day())
 
-        for file in await job(lambda: list(record_path.iterdir())):
+        for file in list(record_path.iterdir()):
             try:
                 # 跳過非文件
                 if not file.is_file():
                     continue
 
-                file_stat = await job(file.stat)
+                file_stat = file.stat()
                 file_mtime = file_stat.st_mtime
 
                 # 刪除今天之前的檔案
                 if file_mtime < today:
-                    await job(file.unlink, missing_ok=True)
+                    file.unlink(missing_ok=True)
                     _LOGGER.debug(
                         f"Deleted file: {file}, size: {file.stat().st_size} bytes"
                     )
 
             except Exception as file_err:
-                _LOGGER.warning(f"An error occurred while processing {file}: {file_err}")
+                _LOGGER.warning(
+                    f"An error occurred while processing {file}: {file_err}"
+                )
 
     except Exception as e:
         _LOGGER.error(f"An error occurred while clearing old files: {e}")
@@ -203,7 +206,11 @@ class VoiceRecorderUploadView(HomeAssistantView):
                             size += len(chunk)
                             await f.write(chunk)
 
-                    file_data = {"filepath": filepath, "size": size, "filename": filename}
+                    file_data = {
+                        "filepath": filepath,
+                        "size": size,
+                        "filename": filename
+                    }
 
                 elif field.name == "eventname":
                     # 讀取 eventName
@@ -214,7 +221,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
                 raise web.HTTPBadRequest(text="No file field found")
 
             if not eventName:
-                eventName = "emty"
+                eventName = "null"
 
             # 觸發保存成功事件
             hass.bus.async_fire(
@@ -237,10 +244,14 @@ class VoiceRecorderUploadView(HomeAssistantView):
             )
 
         except Exception as e:
-            _LOGGER.error("An error occurred while saving the recording file: %s", str(e))
+            _LOGGER.error(
+                "An error occurred while saving the recording file: %s",
+                str(e)
+            )
             return web.json_response(
                 {
                     "success": False,
                     "msg": f"Save failed: {str(e)}"
-                }, status=500
+                },
+                status=500
             )

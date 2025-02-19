@@ -301,7 +301,7 @@ class VoiceRecorderCard extends HTMLElement {
                     }
 
                     const formData = new FormData();
-                    const eventName = this.eventname ?? this.shadowRoot.querySelector('#eventnameInput').value.trim();    // the event name is either provided in the configuration or read from the textbox element
+                    const eventName = this.shadowRoot.querySelector('#eventnameInput').value.trim() || this.eventname || "";  // Priority is given to read the event name from the text box element.
                     formData.append('file', blob, 'recording.mp3');
                     formData.append('eventname', eventName);
 

@@ -44,7 +44,7 @@
 ```
 type: custom:voice-recorder-card
 token: your token
-event_name: static event name(optional)
+event_name: default eventname(optional), It will be used when the eventname input box has no value
 ```
 > [!Tip]
 > 1.Please generate a permanent token in HA.<br>

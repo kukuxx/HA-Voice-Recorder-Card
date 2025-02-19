@@ -41,7 +41,7 @@
 ```
 type: custom:voice-recorder-card
 token: your token
-event_name: static event name(optional)
+event_name: // 預設事件名稱(可選)，當事件名稱輸入框無值時才會使用
 ```
 > [!Tip]
 > 1.記得到HA生成永久token。<br>
