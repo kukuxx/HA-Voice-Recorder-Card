@@ -15,7 +15,8 @@ class VoiceRecorderCard extends HTMLElement {
 
         this.config = config;
         this.token = config.token;
-        this.eventname = config.event_name;    // Static event name
+        this.eventname = config.event_name || ''; // default enentname
+        this.options = config.event_options || [];
         this.attachShadow({ mode: 'open' });
         this._buildCard();
     }
@@ -29,166 +30,132 @@ class VoiceRecorderCard extends HTMLElement {
         const style = document.createElement('style');
         style.textContent = `
             ha-card {
-                border-radius: 20px;
-                overflow: hidden;
+                border-radius: 12px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                background: var(--card-background-color);
+                padding: 0px;
+                align-items: center;
+                justify-content: center;
             }
-
+            
             .card-content {
-                padding: 20px;
+                max-width: 100%;
+                max-height: 100%;
+                padding: 18px 12px 12px 12px;
                 display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-                box-sizing: border-box;
-                background: var(--card-background-color);
-            }
-            
-            .input-container {
-                display: none;
-                position: relative;
-                width: 100%;
-            }
-
-            .input-container.visible {
-                display: flex;
-            }
-
-            .eventname-input {
-                width: 100%;
-                box-sizing: border-box;
-                padding: 12px 44px 12px 16px;
-                border: 2px solid var(--primary-color);
-                border-radius: 12px;
-                background: var(--card-background-color);
-                color: var(--primary-text-color);
-                font-size: 16px;
-                transition: all 0.3s ease;
-            }
-
-            .eventname-input:focus {
-                outline: none;
-                border-color: var(--accent-color);
-                box-shadow: 0 0 0 3px rgba(var(--rgb-accent-color), 0.1);
-            }
-
-            .eventname-input::placeholder {
-                color: var(--secondary-text-color);
-            }
-
-            .clear-button {
-                position: absolute;
-                top: 50%;
-                right: 8px;
-                transform: translateY(-50%);
-                width: 2em;
-                height: 2em;
-                min-width: unset;
-                min-height: unset;
-                background: var(--secondary-background-color);
-                border: none;
-                border-radius: 50%;
-                color: var(--primary-text-color);
-                cursor: pointer;
-                padding: 0;
-                display: none;
-                font-size: 1.2em;
-                line-height: 1;
-                z-index: 1;
-                transition: all 0.2s ease;
-            }
-
-            .clear-button:hover {
-                background: var(--primary-color);
-                color: var(--primary-text-color);
-            }
-
-            .clear-button.visible {
-                display: flex;
+                flex-direction: row;
                 align-items: center;
                 justify-content: center;
-            }
-            
-            .controls-container {
-                display: flex;
-                width: 100%;
                 gap: 8px;
-                align-items: stretch;
+                box-sizing: border-box;
             }
+            
+            ha-select {
+                flex: 50;
+                margin: 0;
+                max-width: 100%;
+                max-height: 100%;
+                
+                /* 基本顏色設定 */
+                --mdc-select-fill-color: var(--card-background-color);
+                --mdc-select-ink-color: var(--primary-text-color);
+                --mdc-select-label-ink-color: var(--primary-color);
+                --mdc-select-dropdown-icon-color: var(--primary-color);
 
-            .toggle-button {
-                flex: 1; 
-                margin: 8px 0;
-                border: none;
-                border-radius: 12px;
-                background: var(--primary-color);
-                color: var(--primary-text-color);
-                cursor: pointer;
-                font-size: 1.5em;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s ease;
+                /* 邊框相關 */
+                --mdc-select-idle-line-color: var(--primary-color);
+                --mdc-select-outlined-idle-border-color: var(--primary-color);
+                --mdc-select-outlined-hover-border-color: var(--accent-color);
+
+                --mdc-select-hover-line-color: var(--accent-color);
+                --mdc-shape-medium: 12px;  /* 圓角設定 */
+                --mdc-theme-primary: var(--accent-color);  /* 選中項目顏色 */
+                --mdc-theme-surface: var(--card-background-color);  /* 下拉選單背景 */
             }
-
-            .toggle-button:hover {
-                opacity: 0.9;
+            
+            ha-select mwc-menu {
+                --mdc-theme-surface: var(--card-background-color);
+                --mdc-text-color: var(--primary-text-color);
+                --mdc-shape-medium: 12px;
+            }
+            
+            mwc-list-item {
+                --mdc-theme-text-primary-on-background: var(--primary-text-color);
+                --mdc-theme-text-secondary-on-background: var(--secondary-text-color);
+                --mdc-ripple-color: var(--accent-color);
+            }
+            
+            mwc-list-item[selected] {
+                color: var(--accent-color);
+                background-color: rgba(var(--rgb-accent-color), 0.12);
             }
 
             mwc-button {
-                flex: 20;
-                margin: 8px 0;
+                flex: 15;
+                margin: 0;
                 --mdc-theme-primary: var(--primary-color);
                 --mdc-shape-small: 12px;
                 transition: all 0.3s ease;
+                max-width: 100%;
+                max-height: 100%;
             }
             
-            .recording {
-                --mdc-theme-primary: var(--error-color) !important;
-            }
-
-            /* Button hover effect */
             mwc-button:hover {
                 opacity: 0.9;
             }
+
+            .recording {
+                --mdc-theme-primary: var(--error-color) !important;
+            }     
         `;
 
         const content = document.createElement('div');
         content.className = 'card-content';
 
-        // eventname textbox
-        const inputContainer = document.createElement('div');
-        inputContainer.className = 'input-container';
+        // Add eventname menu
+        const eventnameSelect = document.createElement('ha-select');
+        eventnameSelect.id = 'eventnameInput';
 
-        const eventnameInput = document.createElement('input');
-        eventnameInput.type = 'text';
-        eventnameInput.className = 'eventname-input';
-        eventnameInput.id = 'eventnameInput';
-        eventnameInput.placeholder = 'Enter your custom event name (optional)';
+        // Add empty option as default value
+        const emptyOption = document.createElement('mwc-list-item');
+        emptyOption.value = this.eventname
+        emptyOption.textContent = this.eventname ? this.eventname : 'Select event name';
+        eventnameSelect.appendChild(emptyOption);
 
-        const clearButton = document.createElement('button');
-        clearButton.className = 'clear-button';
-        clearButton.innerHTML = '×';
-        clearButton.addEventListener('click', () => {
-            eventnameInput.value = '';
-            clearButton.classList.remove('visible');
+        const savedEvent = localStorage.getItem('selectedEventName') || '';
+
+        if (!savedEvent || String(savedEvent) === String(this.eventname)) {
+            emptyOption.setAttribute('selected', 'true');
+        }
+
+        // Add options
+        this.options.forEach(option => {
+            const listItem = document.createElement('mwc-list-item');
+            listItem.value = option;
+            listItem.textContent = option;
+
+            if (savedEvent && String(savedEvent) !== String(this.eventname) && String(savedEvent) === String(option)) {
+                listItem.setAttribute('selected', 'true');
+            }
+
+            eventnameSelect.appendChild(listItem);
         });
 
-        eventnameInput.addEventListener('input', () => {
-            clearButton.classList.toggle('visible', eventnameInput.value.length > 0);
+        // Save value
+        eventnameSelect.addEventListener('change', (event) => {
+            const selectedValue = event.target.value;
+            localStorage.setItem('selectedEventName', selectedValue);
         });
 
-        inputContainer.appendChild(eventnameInput);
-        inputContainer.appendChild(clearButton);
+        content.appendChild(eventnameSelect);
 
-        const controlsContainer = document.createElement('div');
-        controlsContainer.className = 'controls-container';
-
-        // record button
+        // Add record button
         const recordButton = document.createElement('mwc-button');
         recordButton.raised = true;
         recordButton.id = 'recordButton';
-        recordButton.textContent = 'Start Recording';
+        recordButton.innerHTML = `
+          <ha-icon icon="mdi:microphone"></ha-icon>
+        `;
         recordButton.addEventListener('click', () => {
             if (this.isRecording) {
                 this.stopRecording();
@@ -197,21 +164,8 @@ class VoiceRecorderCard extends HTMLElement {
             }
         });
 
-        // toggle button
-        const toggleButton = document.createElement('button');
-        toggleButton.className = 'toggle-button';
-        toggleButton.innerHTML = '+';
-        toggleButton.addEventListener('click', () => {
-            this.isInputVisible = !this.isInputVisible;
-            inputContainer.classList.toggle('visible', this.isInputVisible);
-            toggleButton.innerHTML = this.isInputVisible ? '-' : '+';
-        });
+        content.appendChild(recordButton);
 
-        controlsContainer.appendChild(recordButton);
-        controlsContainer.appendChild(toggleButton);
-
-        content.appendChild(inputContainer);
-        content.appendChild(controlsContainer);
         card.appendChild(style);
         card.appendChild(content);
 
@@ -262,7 +216,6 @@ class VoiceRecorderCard extends HTMLElement {
             this.isRecording = true;
 
             const button = this.shadowRoot.querySelector('#recordButton');
-            button.textContent = 'Stop Recording';
             button.classList.add('recording');
 
             // Set the maximum record time
@@ -290,7 +243,6 @@ class VoiceRecorderCard extends HTMLElement {
         try {
             this.isRecording = false;
             const button = this.shadowRoot.querySelector('#recordButton');
-            button.textContent = 'Start Recording';
             button.classList.remove('recording');
 
             this.recorder.stop(async (blob, duration) => {
@@ -301,7 +253,7 @@ class VoiceRecorderCard extends HTMLElement {
                     }
 
                     const formData = new FormData();
-                    const eventName = this.shadowRoot.querySelector('#eventnameInput').value.trim() || this.eventname || "";  // Priority is given to read the event name from the text box element.
+                    const eventName = String(this.shadowRoot.querySelector('#eventnameInput').value || '').trim();  // Priority is given to read the event name from the menu.
                     formData.append('file', blob, 'recording.mp3');
                     formData.append('eventname', eventName);
 

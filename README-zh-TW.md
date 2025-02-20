@@ -41,11 +41,17 @@
 ```
 type: custom:voice-recorder-card
 token: your token
-event_name: // 預設事件名稱(可選)，當事件名稱輸入框無值時才會使用
+event_name: hallo world
+event_options:
+  - abc
+  - 123
+  - other
 ```
 > [!Tip]
 > 1.記得到HA生成永久token。<br>
-> 2.如果遇到`allowlist_external_dirs`的問題，請參考<a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>這裡</a>。
+> 2.如果遇到`allowlist_external_dirs`的問題，請參考<a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>這裡</a>。<br>
+> 3.event_name是預設事件名，可選。<br>
+> 4.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
 
 - 錄音檔保存成功後會發送一個`voice_recorder_saved`事件可以用來當作觸發條件，事件內容如下:
 ```

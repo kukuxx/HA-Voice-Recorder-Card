@@ -44,11 +44,17 @@
 ```
 type: custom:voice-recorder-card
 token: your token
-event_name: default eventname(optional), It will be used when the eventname input box has no value
+event_name: hallo world
+event_options:
+  - abc
+  - 123
+  - other
 ```
 > [!Tip]
 > 1.Please generate a permanent token in HA.<br>
-> 2.If you encounter problems about `allowlist_external_dirs`, please refer <a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>here.</a>
+> 2.If you encounter problems about `allowlist_external_dirs`, please refer <a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>here.</a><br>
+> 3.event_name(optional) is default eventname.<br>
+> 4.event_options(optional) is the event name option, multiple names can be pre-set.<br>
 
 - After the recording file is successfully saved, a `voice_recorder_saved` event will be sent, which can be used as a trigger. The event data are as follows:
 ```

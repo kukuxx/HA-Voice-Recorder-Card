@@ -41,8 +41,8 @@ async def async_setup_view(hass):
 
         frontend_added = False
         for r in resources.async_items():
-            ver = await version(r["url"])
             if r["url"].startswith(FRONTEND_SCRIPT_URL):
+                ver = await version(r["url"])
                 if ver == 1:
                     frontend_added = True
                     _LOGGER.info("Resource %s is already up to date.", r["url"])

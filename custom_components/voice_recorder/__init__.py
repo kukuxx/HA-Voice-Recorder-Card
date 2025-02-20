@@ -133,18 +133,17 @@ def auto_remove(save_path) -> None:
 
                 file_stat = file.stat()
                 file_mtime = file_stat.st_mtime
+                file_size = file_stat.st_size
 
                 # 刪除今天之前的檔案
                 if file_mtime < today:
                     file.unlink(missing_ok=True)
-                    _LOGGER.debug(
-                        f"Deleted file: {file}, size: {file.stat().st_size} bytes"
+                    _LOGGER.info(
+                        f"Deleted file: {file}, size: {file_size} bytes"
                     )
 
             except Exception as file_err:
-                _LOGGER.warning(
-                    f"An error occurred while processing {file}: {file_err}"
-                )
+                _LOGGER.warning(f"{file}: {file_err}")
 
     except Exception as e:
         _LOGGER.error(f"An error occurred while clearing old files: {e}")
