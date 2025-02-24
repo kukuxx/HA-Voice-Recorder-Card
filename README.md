@@ -44,27 +44,28 @@
 ```
 type: custom:voice-recorder-card
 token: your token
-event_name: hallo world
 event_options:
-  - abc
+  - abc  // option1 is default eventname
   - 123
   - other
 ```
 > [!Tip]
 > 1.Please generate a permanent token in HA.<br>
 > 2.If you encounter problems about `allowlist_external_dirs`, please refer <a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>here.</a><br>
-> 3.event_name(optional) is default eventname.<br>
-> 4.event_options(optional) is the event name option, multiple names can be pre-set.<br>
+> 3.event_options(optional) is the event name option, multiple names can be pre-set.<br>
 
 - After the recording file is successfully saved, a `voice_recorder_saved` event will be sent, which can be used as a trigger. The event data are as follows:
 ```
 {
-  "path": # File path
-  "size": # File size
-  "filename": # File name
-  "eventName": # Custom event name
+  "browserID": # browserID,
+  "eventName": # Custom event name,
+  "filename": # File name,
+  "path": # File path,
+  "size": # File size, 
 }
 ```
+> [!Important]
+> **browserID: You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID**
 
 ## grateful
 

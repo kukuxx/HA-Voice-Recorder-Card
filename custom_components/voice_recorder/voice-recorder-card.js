@@ -15,8 +15,7 @@ class VoiceRecorderCard extends HTMLElement {
 
         this.config = config;
         this.token = config.token;
-        this.eventname = config.event_name || ''; // default enentname
-        this.options = config.event_options || [];
+        this.options = config.event_options || null;
         this.attachShadow({ mode: 'open' });
         this._buildCard();
     }
@@ -116,36 +115,26 @@ class VoiceRecorderCard extends HTMLElement {
         const eventnameSelect = document.createElement('ha-select');
         eventnameSelect.id = 'eventnameInput';
 
-        // Add empty option as default value
-        const emptyOption = document.createElement('mwc-list-item');
-        emptyOption.value = this.eventname
-        emptyOption.textContent = this.eventname ? this.eventname : 'Select event name';
-        eventnameSelect.appendChild(emptyOption);
-
-        const savedEvent = localStorage.getItem('selectedEventName') || '';
-
-        if (!savedEvent || String(savedEvent) === String(this.eventname)) {
-            emptyOption.setAttribute('selected', 'true');
-        }
-
         // Add options
-        this.options.forEach(option => {
-            const listItem = document.createElement('mwc-list-item');
-            listItem.value = option;
-            listItem.textContent = option;
+        if (this.options) {
+            this.options.forEach((option, index) => {
+                const listItem = document.createElement('mwc-list-item');
+                listItem.value = option;
+                listItem.textContent = option;
 
-            if (savedEvent && String(savedEvent) !== String(this.eventname) && String(savedEvent) === String(option)) {
-                listItem.setAttribute('selected', 'true');
-            }
+                if (index === 0) {
+                    listItem.setAttribute('selected', 'true');
+                }
 
-            eventnameSelect.appendChild(listItem);
-        });
-
-        // Save value
-        eventnameSelect.addEventListener('change', (event) => {
-            const selectedValue = event.target.value;
-            localStorage.setItem('selectedEventName', selectedValue);
-        });
+                eventnameSelect.appendChild(listItem);
+            });
+        } else {
+            // Add empty option as default value
+            const emptyOption = document.createElement('mwc-list-item');
+            emptyOption.value = ''
+            emptyOption.textContent = 'Select event name';
+            eventnameSelect.appendChild(emptyOption);
+        }
 
         content.appendChild(eventnameSelect);
 
@@ -253,8 +242,10 @@ class VoiceRecorderCard extends HTMLElement {
                     }
 
                     const formData = new FormData();
-                    const eventName = String(this.shadowRoot.querySelector('#eventnameInput').value || '').trim();  // Priority is given to read the event name from the menu.
+                    const browserID = window.browser_mod?.browserID ? window.browser_mod.browserID : '';
+                    const eventName = String(this.shadowRoot.querySelector('#eventnameInput').value || '').trim();
                     formData.append('file', blob, 'recording.mp3');
+                    formData.append('browserid', browserID);
                     formData.append('eventname', eventName);
 
                     const response = await fetch('/api/voice_recorder/upload', {
@@ -273,8 +264,9 @@ class VoiceRecorderCard extends HTMLElement {
                     const result = await response.json();
 
                     if (result.success) {
+                        const notification = `Browserid:${result.browserID}\n Eventname: ${result.eventName}\n Filename: ${result.filename}\n Path: ${result.path}`;
                         this._hass.callService('persistent_notification', 'create', {
-                            message: `Recording saved: ${result.filename}\n Eventname: ${eventName}\n path：${result.path}`,
+                            message: notification,
                             title: 'Recording saved successfully'
                         });
                     } else {

@@ -41,27 +41,28 @@
 ```
 type: custom:voice-recorder-card
 token: your token
-event_name: hallo world
 event_options:
-  - abc
+  - abc  // 選項1為預設事件名稱
   - 123
   - other
 ```
 > [!Tip]
 > 1.記得到HA生成永久token。<br>
 > 2.如果遇到`allowlist_external_dirs`的問題，請參考<a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>這裡</a>。<br>
-> 3.event_name是預設事件名，可選。<br>
-> 4.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
+> 3.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
 
 - 錄音檔保存成功後會發送一個`voice_recorder_saved`事件可以用來當作觸發條件，事件內容如下:
 ```
 {
-  "path": # 檔案路徑
-  "size": # 檔案大小
-  "filename": # 檔案名
-  "eventName": # 自訂的事件名稱
+  "browserID": # browserID,
+  "eventName": # Custom event name,
+  "filename": # File name,
+  "path": # File path,
+  "size": # File size, 
 }
 ```
+> [!Important]
+> **browserID: 必須安裝<a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a>才會產生ID**
 
 ## 感謝
 

@@ -181,7 +181,8 @@ class VoiceRecorderUploadView(HomeAssistantView):
             reader = await request.multipart()
 
             file_data = None
-            eventName = None
+            eventName = "null"
+            browserID = "null"
 
             # 讀取所有欄位
             while True:
@@ -214,21 +215,25 @@ class VoiceRecorderUploadView(HomeAssistantView):
                 elif field.name == "eventname":
                     # 讀取 eventName
                     value = await field.read(decode=True)
-                    eventName = value.decode()
+                    if value:
+                        eventName = value.decode()
+                
+                elif field.name == "browserid":
+                    value = await field.read(decode=True)
+                    if value:
+                        browserID = value.decode()
 
             if not file_data:
                 raise web.HTTPBadRequest(text="No file field found")
 
-            if not eventName:
-                eventName = "null"
-
             # 觸發保存成功事件
             hass.bus.async_fire(
                 f"{DOMAIN}_saved", {
+                    "browserID": browserID,
+                    "eventName": eventName,
+                    "filename": file_data["filename"], 
                     "path": file_data["filepath"],
-                    "size": file_data["size"],
-                    "filename": file_data["filename"],
-                    "eventName": eventName
+                    "size": file_data["size"], 
                 }
             )
 
@@ -236,9 +241,10 @@ class VoiceRecorderUploadView(HomeAssistantView):
                 {
                     "success": True,
                     "msg": "Recording saved",
-                    "filename": file_data["filename"],
+                    "browserID": browserID,
                     "eventName": eventName,
-                    "path": file_data["filepath"]
+                    "filename": file_data["filename"],
+                    "path": file_data["filepath"],
                 }
             )
 
