@@ -264,9 +264,11 @@ class VoiceRecorderCard extends HTMLElement {
                     const result = await response.json();
 
                     if (result.success) {
-                        const notification = `Browserid:${result.browserID}\n Eventname: ${result.eventName}\n Filename: ${result.filename}\n Path: ${result.path}`;
+                        const notification = `Browserid:${result.browserID}\n Eventname: ${result.eventName}\n Filename: ${result.filename}\n Size: ${result.size}\n Path: ${result.path}`;
+                        const notificationID = '${result.size}'
                         this._hass.callService('persistent_notification', 'create', {
                             message: notification,
+                            notification_id: notificationID,
                             title: 'Recording saved successfully'
                         });
                     } else {
