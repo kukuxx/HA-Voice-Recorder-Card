@@ -17,7 +17,7 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util.dt import now, as_timestamp, start_of_local_day
 
-from .card import async_setup_view, async_del_view
+from .card import async_setup_frontend, async_del_frontend
 from .const import (
     DOMAIN,
     CONF_ENTRY_NAME,
@@ -45,17 +45,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     remove = entry.data.get(CONF_REMOVE, False)
 
     # 確保保存路徑是相對於 config 目錄的
-    if not save_path.startswith('/'):
+    if not (save_path.startswith("/") and save_path.startswith("/config") and save_path.startswith("/homeassistant")):
+        if save_path.startswith("config") or save_path.startswith("homeassistant"):
+            save_path = "/" + save_path
         save_path = os.path.join(hass.config.config_dir, save_path)
+
     os.makedirs(save_path, exist_ok=True)
 
     async def clear_task(*args):
         await hass.async_add_executor_job(auto_remove, save_path)
 
     if remove:
-        task = async_track_time_change(
-            hass, clear_task, hour=1, minute=0, second=0
-        )
+        task = async_track_time_change(hass, clear_task, hour=1, minute=0, second=0)
     else:
         task = None
 
@@ -67,7 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.http.register_view(VoiceRecorderUploadView(save_path))
 
-    await async_setup_view(hass)
+    await async_setup_frontend(hass)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -91,7 +92,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id, None)
 
         if DOMAIN in hass.data and not hass.data[DOMAIN]:
-            async_del_view(hass)
+            async_del_frontend(hass)
             hass.data.pop(DOMAIN, None)
 
         return True
@@ -138,9 +139,7 @@ def auto_remove(save_path) -> None:
                 # 刪除今天之前的檔案
                 if file_mtime < today:
                     file.unlink(missing_ok=True)
-                    _LOGGER.info(
-                        f"Deleted file: {file}, size: {file_size} bytes"
-                    )
+                    _LOGGER.info(f"Deleted file: {file}, size: {file_size} bytes")
 
             except Exception as file_err:
                 _LOGGER.warning(f"{file}: {file_err}")
@@ -206,18 +205,14 @@ class VoiceRecorderUploadView(HomeAssistantView):
                             size += len(chunk)
                             await f.write(chunk)
 
-                    file_data = {
-                        "filepath": filepath,
-                        "size": size,
-                        "filename": filename
-                    }
+                    file_data = {"filepath": filepath, "size": size, "filename": filename}
 
                 elif field.name == "eventname":
                     # 讀取 eventName
                     value = await field.read(decode=True)
                     if value:
                         eventName = value.decode()
-                
+
                 elif field.name == "browserid":
                     value = await field.read(decode=True)
                     if value:
@@ -231,32 +226,21 @@ class VoiceRecorderUploadView(HomeAssistantView):
                 f"{DOMAIN}_saved", {
                     "browserID": browserID,
                     "eventName": eventName,
-                    "filename": file_data["filename"], 
-                    "path": file_data["filepath"],
-                    "size": file_data["size"], 
-                }
-            )
-
-            return web.json_response(
-                {
-                    "success": True,
-                    "msg": "Recording saved",
-                    "browserID": browserID,
-                    "eventName": eventName,
                     "filename": file_data["filename"],
                     "path": file_data["filepath"],
+                    "size": file_data["size"],
                 }
             )
 
+            return web.json_response({
+                "success": True,
+                "msg": "Recording saved",
+                "browserID": browserID,
+                "eventName": eventName,
+                "filename": file_data["filename"],
+                "path": file_data["filepath"],
+            })
+
         except Exception as e:
-            _LOGGER.error(
-                "An error occurred while saving the recording file: %s",
-                str(e)
-            )
-            return web.json_response(
-                {
-                    "success": False,
-                    "msg": f"Save failed: {str(e)}"
-                },
-                status=500
-            )
+            _LOGGER.error("An error occurred while saving the recording file: %s", str(e))
+            return web.json_response({"success": False, "msg": f"Save failed: {str(e)}"}, status=500)
