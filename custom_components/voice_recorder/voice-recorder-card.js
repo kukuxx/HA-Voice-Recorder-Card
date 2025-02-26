@@ -16,6 +16,7 @@ class VoiceRecorderCard extends HTMLElement {
         this.config = config;
         this.token = config.token;
         this.options = config.event_options || null;
+        this.notify = config.notify || false;
         this.attachShadow({ mode: 'open' });
         this._buildCard();
     }
@@ -263,14 +264,16 @@ class VoiceRecorderCard extends HTMLElement {
 
                     const result = await response.json();
 
-                    if (result.success) {
+                    if (result.success && this.notify) {
                         const notification = `Browserid:${result.browserID}\n Eventname: ${result.eventName}\n Filename: ${result.filename}\n Path: ${result.path}`;
                         this._hass.callService('persistent_notification', 'create', {
                             message: notification,
                             title: 'Recording saved successfully'
                         });
                     } else {
-                        throw new Error(result.msg);
+                        if (!result.success) {
+                            throw new Error(result.msg);
+                        }
                     }
 
                 } catch (error) {

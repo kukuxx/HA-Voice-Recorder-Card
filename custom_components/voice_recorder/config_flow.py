@@ -106,12 +106,13 @@ class VoiceRecorderOptionsFlow(config_entries.OptionsFlow):
 
         old_entry_name = self.config_entry.data.get(CONF_ENTRY_NAME, DEFAULT_ENTRY_NAME)
         old_path = self.config_entry.data.get(CONF_SAVE_PATH, "")
+        old_remove = self.config_entry.data.get(CONF_REMOVE, False)
 
         schema = vol.Schema(
             {
                 vol.Required(CONF_ENTRY_NAME, default=old_entry_name): TEXT_SELECTOR,
                 vol.Required(CONF_SAVE_PATH, default=old_path): TEXT_SELECTOR,
-                vol.Optional(CONF_REMOVE, default=False): BOOLEAN_SELECTOR,
+                vol.Optional(CONF_REMOVE, default=old_remove): BOOLEAN_SELECTOR,
             }
         )
 

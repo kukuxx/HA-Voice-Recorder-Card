@@ -4,67 +4,74 @@ from urllib.parse import urlparse, parse_qs
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 
-from .const import FRONTEND_SCRIPT_URL
+from .const import DOMAIN, SCRIPT_URL, FRONTEND_URL, RECORDER_VER
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_view(hass):
+async def async_setup_frontend(hass):
     """Setup the custom Lovelace card."""
     try:
         # Register the static resource for the custom card
         await hass.http.async_register_static_paths(
             [
                 StaticPathConfig(
-                    FRONTEND_SCRIPT_URL,
+                    FRONTEND_URL,
                     hass.config.
-                    path("custom_components/voice_recorder/voice-recorder-card.js"),
+                    path(f"custom_components/{DOMAIN}{SCRIPT_URL}"),
                     False,
                 )
             ]
         )
-        _LOGGER.info("Registered static path for %s", FRONTEND_SCRIPT_URL)
-
-        # Add the custom card as a frontend module
-        add_extra_js_url(hass, FRONTEND_SCRIPT_URL)
-        _LOGGER.info("Added %s as an extra JS URL", FRONTEND_SCRIPT_URL)
+        _LOGGER.info(f"Registered static path for {FRONTEND_URL}")
 
         if (lovelace_data := hass.data.get("lovelace")) is None:
             _LOGGER.warning("Can not access the lovelace data")
             return
 
         resources = lovelace_data.resources
+        frontend_added = False
 
         if not resources.loaded:
             await resources.async_load()
             resources.loaded = True
 
-        frontend_added = False
         for r in resources.async_items():
-            if r["url"].startswith(FRONTEND_SCRIPT_URL):
-                ver = await version(r["url"])
-                if ver == 1:
+            if (r_url := r["url"]).startswith(FRONTEND_URL):
+                if version(r_url):
                     frontend_added = True
-                    _LOGGER.info("Resource %s is already up to date.", r["url"])
+                    _LOGGER.info(
+                        f"Resource {r_url} is already the latest version."
+                    )
                     continue
                 else:
-                    await resources.async_delete_item(r["id"])
-                    _LOGGER.info("Deleted outdated resource: %s", r["url"])
+                    new_url = FRONTEND_URL + f"?ver={RECORDER_VER}"
+                    await resources.async_update_item(
+                        r["id"], {"url": new_url}
+                    )
+                    _LOGGER.info(
+                        f"Updating existing resource: {r_url} to {new_url}"
+                    )
+            elif r_url.startswith(SCRIPT_URL):
+                await resources.async_delete_item(r["id"])
+                _LOGGER.info(f"Deleted outdated resource: {r_url}")
 
         if not frontend_added:
             if getattr(resources, "async_create_item", None):
                 await resources.async_create_item(
                     {
                         "res_type": "module",
-                        "url": FRONTEND_SCRIPT_URL + "?ver=1",
+                        "url": FRONTEND_URL + f"?ver={RECORDER_VER}",
                     }
                 )
-                _LOGGER.info("Added new resource with version 1: %s", FRONTEND_SCRIPT_URL)
+                _LOGGER.info(
+                    f"Added new resource with version {RECORDER_VER}: {FRONTEND_URL}"
+                )
     except Exception as e:
-        _LOGGER.error("Failed to setup the custom card: %s", e, exc_info=True)
+        _LOGGER.error(f"Failed to setup the custom card: {e}", exc_info=True)
 
 
-async def async_del_view(hass):
+async def async_del_frontend(hass):
     """Delete the custom Lovelace card resources."""
     try:
         if (lovelace_data := hass.data.get("lovelace")) is None:
@@ -78,20 +85,22 @@ async def async_del_view(hass):
             resources.loaded = True
 
         for r in resources.async_items():
-            if r["url"].startswith(FRONTEND_SCRIPT_URL):
+            if (r_url := r["url"]).startswith(FRONTEND_URL):
                 await resources.async_delete_item(r["id"])
-                _LOGGER.info("Deleted resource: %s", r["url"])
+                _LOGGER.info(f"Deleted resource: {r_url}")
+                return
     except Exception as e:
-        _LOGGER.error("Failed to delete resources: %s", e, exc_info=True)
+        _LOGGER.error(f"Failed to delete resources: {e}", exc_info=True)
 
 
-async def version(url):
+def version(url):
     """Extract the version from the query string of a URL."""
     try:
         parsed_url = urlparse(url)
         query_params = parse_qs(parsed_url.query)
-        ver = int(query_params.get("ver", [0])[0])  # Default to 0 if 'ver' is missing
-        return ver
-    except ValueError:
-        _LOGGER.warning("Invalid version format in URL: %s", url)
-        return 0
+        # Default to 0 if 'ver' is missing
+        ver_str = query_params.get("ver", ["0"])[0]
+        return ver_str == RECORDER_VER
+    except Exception as e:
+        _LOGGER.warning(f"Error checking version in URL: {url}, error: {e}")
+        return False
