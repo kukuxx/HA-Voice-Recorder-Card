@@ -17,7 +17,7 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util.dt import now, as_timestamp, start_of_local_day
 
-from .card import async_setup_view, async_del_view
+from .card import async_setup_frontend, async_del_frontend
 from .const import (
     DOMAIN,
     CONF_ENTRY_NAME,
@@ -67,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.http.register_view(VoiceRecorderUploadView(save_path))
 
-    await async_setup_view(hass)
+    await async_setup_frontend(hass)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -91,7 +91,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id, None)
 
         if DOMAIN in hass.data and not hass.data[DOMAIN]:
-            async_del_view(hass)
+            async_del_frontend(hass)
             hass.data.pop(DOMAIN, None)
 
         return True
@@ -217,7 +217,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
                     value = await field.read(decode=True)
                     if value:
                         eventName = value.decode()
-                
+
                 elif field.name == "browserid":
                     value = await field.read(decode=True)
                     if value:
@@ -231,9 +231,9 @@ class VoiceRecorderUploadView(HomeAssistantView):
                 f"{DOMAIN}_saved", {
                     "browserID": browserID,
                     "eventName": eventName,
-                    "filename": file_data["filename"], 
+                    "filename": file_data["filename"],
                     "path": file_data["filepath"],
-                    "size": file_data["size"], 
+                    "size": file_data["size"],
                 }
             )
 

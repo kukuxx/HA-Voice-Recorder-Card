@@ -48,11 +48,13 @@ event_options:
   - abc  // option1 is default eventname
   - 123
   - other
+notify: bool // The default value is false.
 ```
 > [!Tip]
 > 1.Please generate a permanent token in HA.<br>
 > 2.If you encounter problems about `allowlist_external_dirs`, please refer <a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>here.</a><br>
 > 3.event_options(optional) is the event name option, multiple names can be pre-set.<br>
+> 4.notify (optional) determines whether a notification is sent when a file is successfully saved.<br>
 
 - After the recording file is successfully saved, a `voice_recorder_saved` event will be sent, which can be used as a trigger. The event data are as follows:
 ```

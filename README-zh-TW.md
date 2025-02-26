@@ -45,11 +45,13 @@ event_options:
   - abc  // 選項1為預設事件名稱
   - 123
   - other
+notify: bool // 預設為false
 ```
 > [!Tip]
 > 1.記得到HA生成永久token。<br>
 > 2.如果遇到`allowlist_external_dirs`的問題，請參考<a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>這裡</a>。<br>
 > 3.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
+> 4.notify可以設定錄音成功是否發送通知，可選。<br>
 
 - 錄音檔保存成功後會發送一個`voice_recorder_saved`事件可以用來當作觸發條件，事件內容如下:
 ```
