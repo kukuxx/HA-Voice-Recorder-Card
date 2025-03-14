@@ -44,14 +44,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     save_path = entry.data.get(CONF_SAVE_PATH, DEFAULT_SAVE_PATH)
     remove = entry.data.get(CONF_REMOVE, False)
 
-    # 確保保存路徑是相對於 config 目錄的
-    if not (save_path.startswith("/") and save_path.startswith("/config") and save_path.startswith("/homeassistant")):
-        if save_path.startswith("config") or save_path.startswith("homeassistant"):
-            save_path = "/" + save_path
-        save_path = os.path.join(hass.config.config_dir, save_path)
-
-    os.makedirs(save_path, exist_ok=True)
-
     async def clear_task(*args):
         await hass.async_add_executor_job(auto_remove, save_path)
 

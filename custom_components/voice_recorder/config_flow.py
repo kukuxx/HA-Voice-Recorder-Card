@@ -16,6 +16,7 @@ from .const import (
     CONF_SAVE_PATH,
     CONF_ENTRY_NAME,
     DEFAULT_ENTRY_NAME,
+    DEFAULT_SAVE_PATH,
     CONF_REMOVE,
 )
 
@@ -49,25 +50,36 @@ class VoiceRecorderConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="single_instance_allowed")
 
         if user_input is not None:
-            if not user_input[CONF_ENTRY_NAME]:
-                errors["base"] = "empty"
-            elif not user_input[CONF_SAVE_PATH]:
+            if not user_input[CONF_ENTRY_NAME] or not user_input[CONF_SAVE_PATH]:
                 errors["base"] = "empty"
             elif not await self.validate_file_path(user_input[CONF_SAVE_PATH]):
                 errors["base"] = "not_allowed"
-            elif not os.path.isdir(user_input[CONF_SAVE_PATH]):
-                errors["base"] = "not_dir"
             else:
-                # 保存配置
+                input_path = user_input[CONF_SAVE_PATH].strip().rstrip("/")
+                
+                if input_path.startswith(("/config", "/homeassistant", "/media")):
+                    final_path = input_path
+                elif input_path.startswith("/"):
+                    final_path = os.path.join(self.hass.config.config_dir, input_path.lstrip("/"))
+                elif input_path.startswith(("config/", "homeassistant/", "media/")):
+                    final_path = "/" + input_path
+                else:
+                    final_path = os.path.join(self.hass.config.config_dir, input_path)
+                
+                os.makedirs(final_path, exist_ok=True)
+
+                user_input[CONF_SAVE_PATH] = final_path
+                
                 return self.async_create_entry(
                     title=user_input[CONF_ENTRY_NAME],
                     data=user_input,
                 )
+
         # Schema
         schema = vol.Schema(
             {
                 vol.Required(CONF_ENTRY_NAME, default=DEFAULT_ENTRY_NAME): TEXT_SELECTOR,
-                vol.Required(CONF_SAVE_PATH): TEXT_SELECTOR,
+                vol.Required(CONF_SAVE_PATH, default=DEFAULT_SAVE_PATH): TEXT_SELECTOR,
                 vol.Optional(CONF_REMOVE, default=False): BOOLEAN_SELECTOR,
             }
         )
@@ -91,21 +103,31 @@ class VoiceRecorderOptionsFlow(config_entries.OptionsFlow):
         errors = {}
 
         if user_input is not None:
-            if not user_input[CONF_ENTRY_NAME]:
-                errors["base"] = "empty"
-            elif not user_input[CONF_SAVE_PATH]:
+            if not user_input[CONF_ENTRY_NAME] or not user_input[CONF_SAVE_PATH]:
                 errors["base"] = "empty"
             elif not await self.validate_file_path(user_input[CONF_SAVE_PATH]):
                 errors["base"] = "not_allowed"
-            elif not os.path.isdir(user_input[CONF_SAVE_PATH]):
-                errors["base"] = "not_dir"
             else:
+                input_path = user_input[CONF_SAVE_PATH].strip().rstrip("/")
+                
+                if input_path.startswith(("/config", "/homeassistant", "/media")):
+                    final_path = input_path
+                elif input_path.startswith("/"):
+                    final_path = os.path.join(self.hass.config.config_dir, input_path.lstrip("/"))
+                elif input_path.startswith(("config/", "homeassistant/", "media/")):
+                    final_path = "/" + input_path
+                else:
+                    final_path = os.path.join(self.hass.config.config_dir, input_path)
+                
+                os.makedirs(final_path, exist_ok=True)
+
+                user_input[CONF_SAVE_PATH] = final_path
                 # 更新選項
                 self.hass.config_entries.async_update_entry(self.config_entry, data=user_input)
                 return self.async_create_entry(title=None, data=None)
 
         old_entry_name = self.config_entry.data.get(CONF_ENTRY_NAME, DEFAULT_ENTRY_NAME)
-        old_path = self.config_entry.data.get(CONF_SAVE_PATH, "")
+        old_path = self.config_entry.data.get(CONF_SAVE_PATH, DEFAULT_SAVE_PATH)
         old_remove = self.config_entry.data.get(CONF_REMOVE, False)
 
         schema = vol.Schema(

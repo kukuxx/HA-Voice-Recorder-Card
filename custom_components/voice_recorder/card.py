@@ -38,8 +38,9 @@ async def async_setup_frontend(hass):
 
         for r in resources.async_items():
             if (r_url := r["url"]).startswith(FRONTEND_URL):
+                frontend_added = True
+
                 if version(r_url):
-                    frontend_added = True
                     _LOGGER.info(
                         f"Resource {r_url} is already the latest version."
                     )
@@ -52,6 +53,7 @@ async def async_setup_frontend(hass):
                     _LOGGER.info(
                         f"Updating existing resource: {r_url} to {new_url}"
                     )
+                    
             elif r_url.startswith(SCRIPT_URL):
                 await resources.async_delete_item(r["id"])
                 _LOGGER.info(f"Deleted outdated resource: {r_url}")
