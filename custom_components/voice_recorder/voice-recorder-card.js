@@ -324,15 +324,20 @@ class VoiceRecorderCard extends HTMLElement {
     }
 }
 
-window.customCards = window.customCards || [];
-if (!window.customCards.some(card => card.type === "voice-recorder-card")) {
-    window.customCards.push({
-        type: "voice-recorder-card",
-        name: "Voice Recorder Card",
-        description: "A card to record and upload audio files.",
-    });
-}
+console.info(
+    `%c  VOICE-RECORDER-CARD  \n%c   Version:   V1.0.8   `,
+    'color: orchid; font-weight: bold; background: dimgray;',
+    'color: orange; font-weight: bold; background: white;'
+);
 
-if (!window.customElements.get('voice-recorder-card')) {
-    window.customElements.define('voice-recorder-card', VoiceRecorderCard);
-}
+customElements.define('voice-recorder-card', VoiceRecorderCard);
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+    type: "voice-recorder-card",
+    name: "Voice Recorder Card",
+    description: "A card to record and upload audio files.",
+});
+
+
+

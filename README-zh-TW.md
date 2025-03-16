@@ -53,6 +53,11 @@ notify: bool // 預設為false
 > 3.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
 > 4.notify可以設定錄音成功是否發送通知，可選。<br>
 
+> [!Important]
+> **你無需手動建立資料夾，整合會根據你設定的路徑自動建立資料夾，**<br>
+**如果你的路徑以`/media`開頭，將在`/media`下建立資料夾，**<br>
+**如果路徑不以`/media`開頭，將在`/homeassistant`下建立資料夾。**<br>
+
 - 錄音檔保存成功後會發送一個`voice_recorder_saved`事件可以用來當作觸發條件，事件內容如下:
 ```
 {
@@ -64,9 +69,9 @@ notify: bool // 預設為false
 }
 ```
 > [!Important]
-> **browserID: 必須安裝<a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a>才會產生ID**
+> **browserID: 必須安裝<a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a>才會產生ID，否則它將顯示為`null`**
 
-## 感謝
+## 致謝
 
 - 部分code寫法參考自 <a href='https://github.com/shaonianzhentan/cloud_music/blob/master/custom_components/ha_cloud_music/local/card/ha_cloud_music-setting.js'>ha_cloud_music</a> 和 <a href='https://github.com/thomasloven/hass-browser_mod/blob/master/custom_components/browser_mod/mod_view.py'>hass-browser_mod</a>。
 - 卡片使用的`Recorder.js`來自<a href='https://github.com/xiangyuecn/Recorder'>xiangyuecn</a>。感謝他的專案!

@@ -56,6 +56,10 @@ notify: bool // The default value is false.
 > 3.event_options(optional) is the event name option, multiple names can be pre-set.<br>
 > 4.notify (optional) determines whether a notification is sent when a file is successfully saved.<br>
 
+> [!Important]
+> **You don’t need to create a folder manually. The integration will automatically create a folder based on the path you’ve set.**<br>
+**If your path starts with `/media`, it will create the folder under the `/media`, if the path doesn’t start with `/media`, it will create the folder under the `/homeassistant`.**<br>
+
 - After the recording file is successfully saved, a `voice_recorder_saved` event will be sent, which can be used as a trigger. The event data are as follows:
 ```
 {
@@ -67,9 +71,9 @@ notify: bool // The default value is false.
 }
 ```
 > [!Important]
-> **browserID: You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID**
+> **browserID: You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID, otherwise it will be displayed as `null`.**
 
-## grateful
+## Credits
 
 -  Part of the code writing method is referenced <a href='https://github.com/shaonianzhentan/cloud_music/blob/master/custom_components/ha_cloud_music/local/card/ha_cloud_music-setting.js'>ha_cloud_music</a> and <a href='https://github.com/thomasloven/hass-browser_mod/blob/master/custom_components/browser_mod/mod_view.py'>hass-browser_mod</a>.
 - The card uses `Recorder.js` from <a href='https://github.com/xiangyuecn/Recorder'>xiangyuecn</a>. Thanks to them for their project!
