@@ -40,7 +40,6 @@ class VoiceRecorderCard extends HTMLElement {
             
             .card-content {
                 max-width: 100%;
-                max-height: 100%;
                 padding: 18px 12px 12px 12px;
                 display: flex;
                 flex-direction: row;
@@ -48,13 +47,15 @@ class VoiceRecorderCard extends HTMLElement {
                 justify-content: center;
                 gap: 8px;
                 box-sizing: border-box;
+                flex-wrap: wrap;
             }
             
             ha-select {
-                flex: 50;
                 margin: 0;
+                flex: 1 1 150px;
+                min-width: 0;
                 max-width: 100%;
-                max-height: 100%;
+                text-overflow: ellipsis;
                 
                 /* 基本顏色設定 */
                 --mdc-select-fill-color: var(--card-background-color);
@@ -68,15 +69,13 @@ class VoiceRecorderCard extends HTMLElement {
                 --mdc-select-outlined-hover-border-color: var(--accent-color);
 
                 --mdc-select-hover-line-color: var(--accent-color);
-                --mdc-shape-medium: 12px;  /* 圓角設定 */
                 --mdc-theme-primary: var(--accent-color);  /* 選中項目顏色 */
                 --mdc-theme-surface: var(--card-background-color);  /* 下拉選單背景 */
-            }
-            
-            ha-select mwc-menu {
-                --mdc-theme-surface: var(--card-background-color);
-                --mdc-text-color: var(--primary-text-color);
-                --mdc-shape-medium: 12px;
+
+                --mdc-menu-surface-fill-color: var(--card-background-color);
+                --mdc-menu-text-color: var(--primary-text-color);
+                --mdc-menu-min-width: 100%;
+                --mdc-menu-max-width: 100%;
             }
             
             mwc-list-item {
@@ -91,13 +90,13 @@ class VoiceRecorderCard extends HTMLElement {
             }
 
             mwc-button {
-                flex: 15;
                 margin: 0;
+                flex: 0 1 80px;
+                max-width: 100%;
+                min-width: 0;
+                transition: all 0.3s ease;
                 --mdc-theme-primary: var(--primary-color);
                 --mdc-shape-small: 12px;
-                transition: all 0.3s ease;
-                max-width: 100%;
-                max-height: 100%;
             }
             
             mwc-button:hover {
