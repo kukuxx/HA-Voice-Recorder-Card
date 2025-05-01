@@ -12,11 +12,15 @@ class VoiceRecorderCard extends HTMLElement {
         if (!config.token) {
             throw new Error('Please set HA token');
         }
+        if (config.button_mode && !['click', 'hold'].includes(config.button_mode)) {
+            throw new Error("Invalid button_mode");
+        }
 
         this.config = config;
         this.token = config.token;
         this.options = config.event_options || null;
         this.notify = config.notify || false;
+        this.button_mode = config.button_mode || 'click'
         this.attachShadow({ mode: 'open' });
         this._buildCard();
     }
@@ -145,13 +149,24 @@ class VoiceRecorderCard extends HTMLElement {
         recordButton.innerHTML = `
           <ha-icon icon="mdi:microphone"></ha-icon>
         `;
-        recordButton.addEventListener('click', () => {
-            if (this.isRecording) {
-                this.stopRecording();
-            } else {
+        if (this.button_mode === 'click') {
+            recordButton.addEventListener('click', () => {
+                if (this.isRecording) {
+                    this.stopRecording();
+                } else {
+                    this.startRecording();
+                }
+            });
+        } else {
+            recordButton.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 this.startRecording();
-            }
-        });
+            });
+            recordButton.addEventListener('pointerup', (e) => {
+                e.preventDefault();
+                this.stopRecording();
+            });
+        }
 
         content.appendChild(recordButton);
 
@@ -236,8 +251,8 @@ class VoiceRecorderCard extends HTMLElement {
 
             this.recorder.stop(async (blob, duration) => {
                 try {
-                    if (duration < 2000) {
-                        this._showError('The recording time is too short (less than 2 seconds)');
+                    if (duration < 200) {
+                        this._showError('The recording time is too short (less than 200 ms)');
                         return;
                     }
 

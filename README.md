@@ -49,6 +49,7 @@ event_options:
   - 123
   - other
 notify: bool // The default value is false.
+button_mode: click or hold  // The default value is click.
 ```
 > [!Tip]
 > 1.Please generate a permanent token in HA.<br>

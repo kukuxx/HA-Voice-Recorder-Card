@@ -46,6 +46,7 @@ event_options:
   - 123
   - other
 notify: bool // 預設為false
+button_mode: click or hold // 預設為click
 ```
 > [!Tip]
 > 1.記得到HA生成永久token。<br>
