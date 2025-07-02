@@ -71,8 +71,8 @@ button_mode: click or hold  // The default value is click.
   "size": # File size, 
 }
 ```
-> [!Important]
-> **browserID: You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID, otherwise it will be displayed as `null`.**
+> [!Tip]
+> **browserID: This is optional. You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID, otherwise it will be displayed as `null`.**
 
 ## Credits
 
