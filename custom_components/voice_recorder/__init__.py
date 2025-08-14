@@ -214,13 +214,27 @@ class VoiceRecorderUploadView(HomeAssistantView):
             if not file_data:
                 raise web.HTTPBadRequest(text="No file field found")
 
+            www_dir = os.path.join(hass.config.config_dir, "www")
+
+            if file_data["filepath"].startswith("/media"):
+                # /media/xxx -> /media/local/xxx
+                remaining_path = file_data["filepath"][6:]
+                url_path = "/media/local" + remaining_path
+            elif file_data["filepath"].startswith(www_dir):
+                # /config/www/xxx -> /local/xxx
+                remaining_path = file_data["filepath"][len(www_dir):]
+                url_path = "/local" + remaining_path
+            else:
+                url_path = file_data["filepath"]
+                
+
             # 觸發保存成功事件
             hass.bus.async_fire(
                 f"{DOMAIN}_saved", {
                     "browserID": browserID,
                     "eventName": eventName,
                     "filename": file_data["filename"],
-                    "path": file_data["filepath"],
+                    "path": url_path,
                     "size": file_data["size"],
                 }
             )

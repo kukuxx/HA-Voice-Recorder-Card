@@ -42,22 +42,27 @@
 type: custom:voice-recorder-card
 token: your token
 event_options:
-  - abc  // 選項1為預設事件名稱
+  - abc     // 選項1為預設事件名稱
   - 123
   - other
-notify: bool // 預設為false
-button_mode: click or hold // 預設為click
+notify: bool    // 預設為false
+button_mode: click or hold    // 預設為click
+volume_gain: 2    // 預設為2
+audio_quality: good    // 預設為good
 ```
 > [!Tip]
 > 1.記得到HA生成永久token。<br>
 > 2.如果遇到`allowlist_external_dirs`的問題，請參考<a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>這裡</a>。<br>
 > 3.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
 > 4.notify可以設定錄音成功是否發送通知，可選。<br>
+> 5.button_mode可以設定錄音按鈕是點擊還是長按，可選。<br>
+> 6.volume_gain可以設定錄音音量增益，可選，建議不要設定過大增益造成音質降低。<br>
+> 7.audio_quality可以設定錄音品質，可選。<br>
 
 > [!Important]
 > **你無需手動建立資料夾，整合會根據你設定的路徑自動建立資料夾，**<br>
 **如果你的路徑以`/media`開頭，將在`/media`下建立資料夾，**<br>
-**如果路徑不以`/media`開頭，將在`/homeassistant`下建立資料夾。**<br>
+**如果路徑不以`/media`開頭，將在`/homeassistant/www`下建立資料夾。**<br>
 
 - 錄音檔保存成功後會發送一個`voice_recorder_saved`事件可以用來當作觸發條件，事件內容如下:
 ```
@@ -69,8 +74,8 @@ button_mode: click or hold // 預設為click
   "size": # File size, 
 }
 ```
-> [!Important]
-> **browserID: 必須安裝<a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a>才會產生ID，否則它將顯示為`null`**
+> [!Tip]
+> **browserID(可選): 必須安裝<a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a>才會產生ID，否則它將顯示為`null`**
 
 ## 致謝
 

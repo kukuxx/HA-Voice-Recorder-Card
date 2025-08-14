@@ -24,6 +24,24 @@ _LOGGER = logging.getLogger(__name__)
 TEXT_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT))
 BOOLEAN_SELECTOR = BooleanSelector(BooleanSelectorConfig())
 
+def _format_path(input_path, config_dir):
+    www_dir = os.path.join(config_dir, "www")
+    
+    # media 開頭 -> /media
+    if input_path.lower().startswith("media"):
+        remaining = input_path[5:].lstrip("/")
+        output_path = os.path.join("/media", remaining) if remaining else "/media"
+    # 包含 www -> Home Assistant www 資料夾
+    elif "www" in input_path.lower():
+        www_pos = input_path.lower().find("www")
+        remaining = input_path[www_pos + 3:].lstrip("/")
+        output_path = os.path.join(www_dir, remaining) if remaining else www_dir
+    # 其他 -> www 資料夾
+    else:
+        output_path = os.path.join(www_dir, input_path)
+    
+    return output_path
+
 
 class VoiceRecorderConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Voice Recorder."""
@@ -55,16 +73,9 @@ class VoiceRecorderConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif not await self.validate_file_path(user_input[CONF_SAVE_PATH]):
                 errors["base"] = "not_allowed"
             else:
-                input_path = user_input[CONF_SAVE_PATH].strip().rstrip("/")
-                
-                if input_path.startswith(("/config", "/homeassistant", "/media")):
-                    final_path = input_path
-                elif input_path.startswith("/"):
-                    final_path = os.path.join(self.hass.config.config_dir, input_path.lstrip("/"))
-                elif input_path.startswith(("config/", "homeassistant/", "media/")):
-                    final_path = "/" + input_path
-                else:
-                    final_path = os.path.join(self.hass.config.config_dir, input_path)
+                input_path = user_input[CONF_SAVE_PATH].strip().strip("/")
+                config_dir = self.hass.config.config_dir
+                final_path = _format_path(input_path, config_dir)
                 
                 os.makedirs(final_path, exist_ok=True)
 
@@ -108,16 +119,9 @@ class VoiceRecorderOptionsFlow(config_entries.OptionsFlow):
             elif not await self.validate_file_path(user_input[CONF_SAVE_PATH]):
                 errors["base"] = "not_allowed"
             else:
-                input_path = user_input[CONF_SAVE_PATH].strip().rstrip("/")
-                
-                if input_path.startswith(("/config", "/homeassistant", "/media")):
-                    final_path = input_path
-                elif input_path.startswith("/"):
-                    final_path = os.path.join(self.hass.config.config_dir, input_path.lstrip("/"))
-                elif input_path.startswith(("config/", "homeassistant/", "media/")):
-                    final_path = "/" + input_path
-                else:
-                    final_path = os.path.join(self.hass.config.config_dir, input_path)
+                input_path = user_input[CONF_SAVE_PATH].strip().strip("/")
+                config_dir = self.hass.config.config_dir
+                final_path = _format_path(input_path, config_dir)
                 
                 os.makedirs(final_path, exist_ok=True)
 

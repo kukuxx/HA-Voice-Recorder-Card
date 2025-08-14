@@ -45,21 +45,26 @@
 type: custom:voice-recorder-card
 token: your token
 event_options:
-  - abc  // option1 is default eventname
+  - abc     // option1 is default eventname
   - 123
   - other
-notify: bool // The default value is false.
-button_mode: click or hold  // The default value is click.
+notify: bool    // The default value is false.
+button_mode: click or hold    // The default value is click.
+volume_gain: 2    // The default value is 2.
+audio_quality: good    // The default value is good.
 ```
 > [!Tip]
 > 1.Please generate a permanent token in HA.<br>
 > 2.If you encounter problems about `allowlist_external_dirs`, please refer <a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>here.</a><br>
 > 3.event_options(optional) is the event name option, multiple names can be pre-set.<br>
 > 4.notify (optional) determines whether a notification is sent when a file is successfully saved.<br>
+> 5.button_mode (optional) determines whether the button is in click or hold mode.<br>
+> 6.volume_gain (optional) determines the volume gain of the recording. It is recommended not to set too large a gain to reduce the sound quality.<br>
+> 7.audio_quality (optional) determines the audio quality of the recording.
 
 > [!Important]
 > **You don’t need to create a folder manually. The integration will automatically create a folder based on the path you’ve set.**<br>
-**If your path starts with `/media`, it will create the folder under the `/media`, if the path doesn’t start with `/media`, it will create the folder under the `/homeassistant`.**<br>
+**If your path starts with `/media`, it will create the folder under the `/media`, if the path doesn’t start with `/media`, it will create the folder under the `/homeassistant/www`.**<br>
 
 - After the recording file is successfully saved, a `voice_recorder_saved` event will be sent, which can be used as a trigger. The event data are as follows:
 ```
@@ -71,8 +76,8 @@ button_mode: click or hold  // The default value is click.
   "size": # File size, 
 }
 ```
-> [!Important]
-> **browserID: You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID, otherwise it will be displayed as `null`.**
+ [!Tip]
+> **browserID: This is optional. You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID, otherwise it will be displayed as `null`.**
 
 ## Credits
 
