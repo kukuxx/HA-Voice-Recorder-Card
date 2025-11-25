@@ -43,24 +43,22 @@
 - After the restart is completed, search for Voice Recorder in the integration and set it up, then configure voice-recorder-card:
 ```
 type: custom:voice-recorder-card
-token: your token
 event_options:
-  - abc     // option1 is default eventname
-  - 123
-  - other
+  - All     // option1 is default eventname
+  - Living Room
+  - Kitchen
 notify: bool    // The default value is false.
 button_mode: click or hold    // The default value is click.
 volume_gain: 2    // The default value is 2.
 audio_quality: good    // The default value is good.
 ```
 > [!Tip]
-> 1.Please generate a permanent token in HA.<br>
-> 2.If you encounter problems about `allowlist_external_dirs`, please refer <a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>here.</a><br>
-> 3.event_options(optional) is the event name option, multiple names can be pre-set.<br>
-> 4.notify (optional) determines whether a notification is sent when a file is successfully saved.<br>
-> 5.button_mode (optional) determines whether the button is in click or hold mode.<br>
-> 6.volume_gain (optional) determines the volume gain of the recording. It is recommended not to set too large a gain to reduce the sound quality.<br>
-> 7.audio_quality (optional) determines the audio quality of the recording.
+> 1. If you encounter problems about `allowlist_external_dirs`, please refer <a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>here.</a><br>
+> 2. event_options(optional) is the event name option, multiple names can be pre-set.<br>
+> 3. notify (optional) determines whether a notification is sent when a file is successfully saved.<br>
+> 4.button_mode (optional) determines whether the button is in click or hold mode.<br>
+> 5. volume_gain (optional) determines the volume gain of the recording. It is recommended not to set too large a gain to reduce the sound quality.<br>
+> 6. audio_quality (optional) determines the audio quality of the recording.
 
 > [!Important]
 > **You don’t need to create a folder manually. The integration will automatically create a folder based on the path you’ve set.**<br>
@@ -78,6 +76,32 @@ audio_quality: good    // The default value is good.
 ```
  [!Tip]
 > **browserID: This is optional. You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID, otherwise it will be displayed as `null`.**
+
+### Play sounds immediatly at home - announcements
+This automation will play every incoming voice recording on a media player / speaker matching the *eventName* in announcement mode at a fixed volume (20). 
+```
+alias: Announcement
+description: ""
+triggers:
+  - trigger: event
+    event_type: voice_recorder_saved
+conditions: []
+actions:
+  - action: media_player.play_media
+    metadata: {}
+    data:
+      media:
+        media_content_id: "{{ trigger.event.data.path}}"
+        media_content_type: music
+      announce: true
+      extra:
+        volume: 20
+    target:
+      entity_id: media_player.{{ trigger.event.data.eventName | slugify(separator="_") }}
+    enabled: true
+mode: single
+```
+
 
 ## Credits
 
