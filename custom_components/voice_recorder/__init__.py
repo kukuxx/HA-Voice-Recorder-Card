@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers import config_validation as cv
+from homeassistant.loader import async_get_integration
 from homeassistant.util.dt import now, as_timestamp, start_of_local_day
 
 from .card import async_setup_frontend, async_del_frontend
@@ -25,6 +26,10 @@ from .const import (
     CONF_REMOVE,
     DEFAULT_SAVE_PATH,
     DEFAULT_ENTRY_NAME,
+    NAME,
+    SAVE_PATH,
+    RECORDER_VER,
+    TASK_CANCEL,
 )
 
 CONFIG_SCHEMA = cv.removed(DOMAIN, raise_if_present=True)  # YAML 配置已棄用
@@ -39,28 +44,33 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Voice Recorder from a config entry."""
+    @callback
+    async def clear_task(*args):
+        await hass.async_add_executor_job(auto_remove, save_path)
+
     entry_id = entry.entry_id
     entry_name = entry.data.get(CONF_ENTRY_NAME, DEFAULT_ENTRY_NAME)
     save_path = entry.data.get(CONF_SAVE_PATH, DEFAULT_SAVE_PATH)
     remove = entry.data.get(CONF_REMOVE, False)
 
-    async def clear_task(*args):
-        await hass.async_add_executor_job(auto_remove, save_path)
+    integration = await async_get_integration(hass, DOMAIN)
+    integration_ver = str(integration.version) if integration.version else None
 
-    if remove:
-        task = async_track_time_change(hass, clear_task, hour=1, minute=0, second=0)
-    else:
-        task = None
+    task_cancel = (
+        async_track_time_change(hass, clear_task, hour=1, minute=0, second=0) 
+        if remove else None
+    )
 
     hass.data.setdefault(DOMAIN, {})[entry_id] = {
-        "name": entry_name,
-        "path": save_path,
-        "remove_task": task,
+        NAME: entry_name,
+        SAVE_PATH: save_path,
+        RECORDER_VER: integration_ver,
+        TASK_CANCEL: task_cancel,
     }
 
     hass.http.register_view(VoiceRecorderUploadView(entry_id))
 
-    await async_setup_frontend(hass)
+    await async_setup_frontend(hass, entry_id)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -72,13 +82,13 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     try:
         await hass.config_entries.async_reload(entry.entry_id)
     except Exception as e:
-        _LOGGER.error(f"update_listener error {e}")
+        _LOGGER.error("update_listener error: %s", e)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     try:
-        task = hass.data[DOMAIN][entry.entry_id].get("remove_task", None)
+        task = hass.data[DOMAIN][entry.entry_id].get(TASK_CANCEL, None)
         if task:
             task()
         hass.data[DOMAIN].pop(entry.entry_id, None)
@@ -89,7 +99,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         return True
     except Exception as e:
-        _LOGGER.error(f"async_unload_entry error {e}")
+        _LOGGER.error("async_unload_entry error: %s", e)
         return False
 
 
@@ -131,13 +141,13 @@ def auto_remove(save_path) -> None:
                 # 刪除今天之前的檔案
                 if file_mtime < today:
                     file.unlink(missing_ok=True)
-                    _LOGGER.info(f"Deleted file: {file}, size: {file_size} bytes")
+                    _LOGGER.info("Deleted file: %s, size: %s bytes", file, file_size)
 
             except Exception as file_err:
-                _LOGGER.warning(f"{file}: {file_err}")
+                _LOGGER.warning("Error deleting file: %s, error: %s", file, file_err)
 
     except Exception as e:
-        _LOGGER.error(f"An error occurred while clearing old files: {e}")
+        _LOGGER.error("An error occurred while clearing old files: %s", e)
 
 
 class VoiceRecorderUploadView(HomeAssistantView):
@@ -169,7 +179,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
         """Handle uploaded file."""
         try:
             hass = request.app[KEY_HASS]
-            save_path = hass.data[DOMAIN][self.entry_id]["path"]
+            save_path = hass.data[DOMAIN][self.entry_id][SAVE_PATH]
             reader = await request.multipart()
 
             file_data = None
@@ -256,5 +266,5 @@ class VoiceRecorderUploadView(HomeAssistantView):
             })
 
         except Exception as e:
-            _LOGGER.error("An error occurred while saving the recording file: %s", str(e))
+            _LOGGER.error("An error occurred while saving the recording file: %s", e)
             return web.json_response({"success": False, "msg": f"Save failed: {str(e)}"}, status=500)

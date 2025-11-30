@@ -42,22 +42,21 @@
 type: custom:voice-recorder-card
 token: your token
 event_options:
-  - abc     // 選項1為預設事件名稱
-  - 123
-  - other
+  - All     // 選項1為預設事件名稱
+  - Living Room
+  - Kitchen
 notify: bool    // 預設為false
 button_mode: click or hold    // 預設為click
 volume_gain: 2    // 預設為2
 audio_quality: good    // 預設為good
 ```
 > [!Tip]
-> 1.記得到HA生成永久token。<br>
-> 2.如果遇到`allowlist_external_dirs`的問題，請參考<a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>這裡</a>。<br>
-> 3.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
-> 4.notify可以設定錄音成功是否發送通知，可選。<br>
-> 5.button_mode可以設定錄音按鈕是點擊還是長按，可選。<br>
-> 6.volume_gain可以設定錄音音量增益，可選，建議不要設定過大增益造成音質降低。<br>
-> 7.audio_quality可以設定錄音品質，可選。<br>
+> 1.如果遇到`allowlist_external_dirs`的問題，請參考<a href='https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs'>這裡</a>。<br>
+> 2.event_options是事件名稱選項，可以預先填入多個事件名稱，可選。<br>
+> 3.notify可以設定錄音成功是否發送通知，可選。<br>
+> 4.button_mode可以設定錄音按鈕是點擊還是長按，可選。<br>
+> 5.volume_gain可以設定錄音音量增益，可選，建議不要設定過大增益造成音質降低。<br>
+> 6.audio_quality可以設定錄音品質，可選。<br>
 
 > [!Important]
 > **你無需手動建立資料夾，整合會根據你設定的路徑自動建立資料夾，**<br>
@@ -76,6 +75,33 @@ audio_quality: good    // 預設為good
 ```
 > [!Tip]
 > **browserID(可選): 必須安裝<a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a>才會產生ID，否則它將顯示為`null`**
+
+## 自動化範例
+
+- 在家中立即播放聲音 - 公告
+> 此自動化操作會將每個傳入的語音錄音以固定音量 (20) 在媒體播放器/揚聲器上播放，媒體播放器/揚聲器名稱與 *eventName* 相符。 
+```
+alias: Announcement
+description: ""
+triggers:
+  - trigger: event
+    event_type: voice_recorder_saved
+conditions: []
+actions:
+  - action: media_player.play_media
+    metadata: {}
+    data:
+      media:
+        media_content_id: "{{ trigger.event.data.path}}"
+        media_content_type: music
+      announce: true
+      extra:
+        volume: 20
+    target:
+      entity_id: media_player.{{ trigger.event.data.eventName | slugify(separator="_") }}
+    enabled: true
+mode: single
+```
 
 ## 致謝
 

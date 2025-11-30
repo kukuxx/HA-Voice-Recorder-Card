@@ -74,11 +74,13 @@ audio_quality: good    // The default value is good.
   "size": # File size, 
 }
 ```
- [!Tip]
+> [!Tip]
 > **browserID: This is optional. You must install <a href='https://github.com/thomasloven/hass-browser_mod'>browser_mod</a> to generate an ID, otherwise it will be displayed as `null`.**
 
-### Play sounds immediatly at home - announcements
-This automation will play every incoming voice recording on a media player / speaker matching the *eventName* in announcement mode at a fixed volume (20). 
+## Example Automation
+
+- Play sounds immediatly at home - announcements
+> This automation will play every incoming voice recording on a media player / speaker matching the *eventName* in announcement mode at a fixed volume (20). 
 ```
 alias: Announcement
 description: ""
@@ -101,7 +103,6 @@ actions:
     enabled: true
 mode: single
 ```
-
 
 ## Credits
 

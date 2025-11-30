@@ -4,7 +4,7 @@
     ],
     "domain": "voice_recorder",
     "name": "Voice Recorder",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "homeassistant": "2025.2.0",
     "documentation": "https://github.com/kukuxx/HA-Voice-Recorder-Card/blob/main/README.md",
     "issue_tracker": "https://github.com/kukuxx/HA-Voice-Recorder-Card/issues",
@@ -14,6 +14,7 @@
     "loggers": [
         "voice_recorder"
     ],
+    "single_config_entry": true,
     "config_flow": true,
     "iot_class": "local_polling"
 }
