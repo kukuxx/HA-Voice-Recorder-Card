@@ -175,6 +175,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
             file_data = None
             eventName = "null"
             browserID = "null"
+            user_id = "unknown"
 
             # 讀取所有欄位
             while True:
@@ -211,6 +212,11 @@ class VoiceRecorderUploadView(HomeAssistantView):
                     if value:
                         browserID = value.decode()
 
+                elif field.name == "user_id":
+                    value = await field.read(decode=True)
+                    if value:
+                        user_id = value.decode()
+
             if not file_data:
                 raise web.HTTPBadRequest(text="No file field found")
 
@@ -236,6 +242,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
                     "filename": file_data["filename"],
                     "path": url_path,
                     "size": file_data["size"],
+                    "user_id": user_id,
                 }
             )
 

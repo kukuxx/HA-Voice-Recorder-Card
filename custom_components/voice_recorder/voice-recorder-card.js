@@ -10,15 +10,11 @@ class VoiceRecorderCard extends HTMLElement {
     }
 
     setConfig(config) {
-        if (!config.token) {
-            throw new Error('Please set HA token');
-        }
         if (config.button_mode && !['click', 'hold'].includes(config.button_mode)) {
             throw new Error("Invalid button_mode");
         }
 
         this.config = config;
-        this.token = config.token;
         this.options = config.event_options || null;
         this.notify = config.notify || false;
         this.button_mode = config.button_mode || 'click'
@@ -385,11 +381,12 @@ class VoiceRecorderCard extends HTMLElement {
                     formData.append('file', blob, 'recording.mp3');
                     formData.append('browserid', browserID);
                     formData.append('eventname', eventName);
+                    formData.append('user_id', this._hass.user.id);
 
                     const response = await fetch('/api/voice_recorder/upload', {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${this.token}`
+                            'Authorization': `Bearer ${this._hass.auth.accessToken}`
                         },
                         body: formData
                     });
