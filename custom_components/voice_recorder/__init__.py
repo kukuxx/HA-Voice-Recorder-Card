@@ -263,6 +263,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
                 "eventName": eventName,
                 "filename": file_data["filename"],
                 "path": file_data["filepath"],
+                "user_id": user_id,
             })
 
         except Exception as e:

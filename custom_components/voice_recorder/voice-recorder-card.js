@@ -61,37 +61,6 @@ class VoiceRecorderCard extends HTMLElement {
                 min-width: 0;
                 max-width: 100%;
                 text-overflow: ellipsis;
-                
-                /* 基本顏色設定 */
-                --mdc-select-fill-color: var(--card-background-color);
-                --mdc-select-ink-color: var(--primary-text-color);
-                --mdc-select-label-ink-color: var(--primary-color);
-                --mdc-select-dropdown-icon-color: var(--primary-color);
-
-                /* 邊框相關 */
-                --mdc-select-idle-line-color: var(--primary-color);
-                --mdc-select-outlined-idle-border-color: var(--primary-color);
-                --mdc-select-outlined-hover-border-color: var(--accent-color);
-
-                --mdc-select-hover-line-color: var(--accent-color);
-                --mdc-theme-primary: var(--accent-color);  /* 選中項目顏色 */
-                --mdc-theme-surface: var(--card-background-color);  /* 下拉選單背景 */
-
-                --mdc-menu-surface-fill-color: var(--card-background-color);
-                --mdc-menu-text-color: var(--primary-text-color);
-                --mdc-menu-min-width: 100%;
-                --mdc-menu-max-width: 100%;
-            }
-            
-            ha-list-item {
-                --mdc-theme-text-primary-on-background: var(--primary-text-color);
-                --mdc-theme-text-secondary-on-background: var(--secondary-text-color);
-                --mdc-ripple-color: var(--accent-color);
-            }
-            
-            ha-list-item[selected] {
-                color: var(--accent-color);
-                background-color: rgba(var(--rgb-accent-color), 0.12);
             }
 
             ha-button {
@@ -139,25 +108,32 @@ class VoiceRecorderCard extends HTMLElement {
         eventnameSelect.id = 'eventnameInput';
 
         // Add options
-        if (this.options) {
-            this.options.forEach((option, index) => {
-                const listItem = document.createElement('ha-list-item');
-                listItem.value = option;
-                listItem.textContent = option;
+        if (this.options && this.options.length > 0) {
+            eventnameSelect.options = this.options.map(o => ({
+                value: String(o),
+                label: String(o)
+            }));
 
-                if (index === 0) {
-                    listItem.setAttribute('selected', 'true');
-                }
+            eventnameSelect.value = String(this.options[0]);
 
-                eventnameSelect.appendChild(listItem);
-            });
         } else {
-            // Add empty option as default value
-            const emptyOption = document.createElement('ha-list-item');
-            emptyOption.value = ''
-            emptyOption.textContent = 'Select event name';
-            eventnameSelect.appendChild(emptyOption);
+            eventnameSelect.options = [{
+                value: '0',
+                label: 'Select event name'
+            }];
+
+            eventnameSelect.value = '0';
         }
+
+        // Listen selected event
+        eventnameSelect.addEventListener('selected', (e) => {
+            const val = e.detail?.value ?? e.target.value;
+            const newValue = String(val ?? '0');
+
+            if (eventnameSelect.value !== newValue) {
+                eventnameSelect.value = newValue;
+            }
+        });
 
         content.appendChild(eventnameSelect);
 
@@ -377,7 +353,8 @@ class VoiceRecorderCard extends HTMLElement {
 
                     const formData = new FormData();
                     const browserID = window.browser_mod?.browserID ? window.browser_mod.browserID : '';
-                    const eventName = String(this.shadowRoot.querySelector('#eventnameInput').value || '').trim();
+                    const selectValue = this.shadowRoot.querySelector('#eventnameInput').value;
+                    const eventName = (selectValue.trim() === '0' ? '' : selectValue.trim());
                     formData.append('file', blob, 'recording.mp3');
                     formData.append('browserid', browserID);
                     formData.append('eventname', eventName);
@@ -399,7 +376,7 @@ class VoiceRecorderCard extends HTMLElement {
                     const result = await response.json();
 
                     if (result.success && this.notify) {
-                        const notification = `BrowserID: ${result.browserID}\nEventName: ${result.eventName}\nFileName: ${result.filename}\nPath: ${result.path}`;
+                        const notification = `BrowserID: ${result.browserID}\nEventName: ${result.eventName}\nFileName: ${result.filename}\nPath: ${result.path}\nUserID: ${result.user_id}`;
                         this._hass.callService('persistent_notification', 'create', {
                             message: notification,
                             title: 'Recording saved successfully'
@@ -460,7 +437,7 @@ class VoiceRecorderCard extends HTMLElement {
 }
 
 console.info(
-    `%c  VOICE-RECORDER-CARD  \n%c  VERSION:    V1.0.12  `,
+    `%c  VOICE-RECORDER-CARD  \n%c  VERSION:    V1.0.13  `,
     'color: orchid; font-weight: bold; background: dimgray;',
     'color: orange; font-weight: bold; background: white;'
 );
