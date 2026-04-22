@@ -437,7 +437,7 @@ class VoiceRecorderCard extends HTMLElement {
 }
 
 console.info(
-    `%c  VOICE-RECORDER-CARD  \n%c  VERSION:    V1.0.13  `,
+    `%c  VOICE-RECORDER-CARD  \n%c  VERSION:    V1.0.14  `,
     'color: orchid; font-weight: bold; background: dimgray;',
     'color: orange; font-weight: bold; background: white;'
 );

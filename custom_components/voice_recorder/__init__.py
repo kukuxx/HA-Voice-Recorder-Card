@@ -195,7 +195,7 @@ class VoiceRecorderUploadView(HomeAssistantView):
 
                 if field.name == "file":
                     # 處理文件
-                    time = now().strftime("%Y-%m-%d_%H:%M:%S")
+                    time = now().strftime("%Y-%m-%d_%H_%M_%S")
                     filename = f"recording_{time}.mp3"
                     filepath = os.path.join(save_path, filename)
 
