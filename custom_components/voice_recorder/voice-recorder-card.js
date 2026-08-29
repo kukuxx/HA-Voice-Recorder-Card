@@ -18,7 +18,7 @@ class VoiceRecorderCard extends HTMLElement {
         this.options = config.event_options || null;
         this.notify = config.notify || false;
         this.button_mode = config.button_mode || 'click'
-        // Volume gain setting, default is 1.0 (no gain), range 1.0 - 10.0
+        // Volume gain setting, range 1.0 - 10.0
         this.volumeGain = Math.max(1.0, Math.min(10.0, config.volume_gain || 2.0));
         // Sound quality level settings: basic (16k/128), good (22k/160), high (44k/192), ultra (48k/256)
         this.audioQuality = config.audio_quality || 'good';
